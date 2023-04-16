@@ -22,32 +22,27 @@ fn main() {
 fn run_file(path: &String) -> io::Result<()> {
     let bytes = read_to_string(path)?;
     if let Err(e) = run(bytes) {
-        e.report("");
         std::process::exit(65);
     }
-    Ok(())    
+    Ok(())     
 }
 
 fn run_prompt() -> io::Result<()>{
-    let stdin = io::stdin();
-    let mut reader =  stdin.lock().lines();
+    let mut reader = io::stdin().lock().lines();
     loop {
         print!("> ");
         io::stdout().flush()?;
         
-        let line = reader.next();
-
-        match line {
+        match reader.next(){
             None => break,
             Some(line) => match line {
                 Err(e) => return Err(e),
-                Ok(line) => if let Err(e) = run(line) { e.report(""); }
+                Ok(line) => if let Err(_) = run(line) {},
             }
         } 
     }  
     Ok(()) 
 }
-
 
 
 fn run(source: String) -> Result<(), LoxError> {
