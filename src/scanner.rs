@@ -31,7 +31,7 @@ impl Scanner {
                 had_error = Some(e);
             }
         }
-        
+        self.start = self.current;
         self.add_token(TokenType::Eof); 
 
         match had_error {
@@ -69,6 +69,18 @@ impl Scanner {
                 let tok = match self.is_match('=') {true => TokenType::GreaterEqual, false => TokenType::Greater};
                 self.add_token(tok);
             },
+            '/' => match self.peek(0) {
+                Some('/') => while let Some(ch) = self.peek(0) { match ch {
+                    '\n' => break,
+                    _ => self.advance(),
+                };},
+                Some('*') => {
+                    self.advance();
+                    self.comment()?
+                },
+                _ => self.add_token(TokenType::Slash),
+            },
+            /* 
             '/' => match self.is_match('/'){
                 true => while let Some(ch) = self.peek(0) { match ch {
                     '\n' => break,
@@ -76,6 +88,7 @@ impl Scanner {
                 };}, 
                 false => self.add_token(TokenType::Slash),
             },
+            */
             '"' => self.string()?,
             '0'..='9' => self.number(),
             'a'..='z' | 'A'..='Z' | '_' => self.indentifier(),
@@ -85,6 +98,19 @@ impl Scanner {
         }
         Ok(())
     }
+    
+    fn comment(&mut self) -> Result<(), LoxError>{
+        while let (Some(ch1), Some(ch2)) = (self.peek(0), self.peek(1)) {
+            self.advance();
+            match (ch1, ch2) {
+                ('/', '*') => {self.advance(); self.comment()? },
+                ('*', '/') => {self.advance(); return Ok(())},
+                (_, '\n') => self.line += 1, 
+                _ => {}, 
+            }
+        }
+        Err(LoxError::error(self.line, "Unterminate block comment.".to_owned()))
+    } 
 
     fn indentifier(&mut self) {
         while let Some('a'..='z' | 'A'..='Z' | '0'..='9' | '_') = self.peek(0) {

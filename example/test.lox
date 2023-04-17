@@ -1,4 +1,7 @@
-)() // yes
--+-=-==!=!!=    >   ><,..,>   >>=
-aaffg sdgg
-!_-0_9)DHU8)0<<:.
+/* a block comment */ ()
+/* a block comment in line 2 */ !
+/* a block comment in line 3 /* a nest block comment */ end of comment */ !
+/* a multi lines block comment 
+   next line ! 
+   god
+   /* a nest comment */ / */ why /* here */ / /

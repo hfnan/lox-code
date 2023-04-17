@@ -33,7 +33,7 @@ fn run_prompt() -> io::Result<()>{
     let mut reader = io::stdin().lock().lines();
     loop {
         print!("> ");
-        io::stdout().flush()?;
+        io::stdout().flush()?; 
         
         match reader.next(){
             None => break,
