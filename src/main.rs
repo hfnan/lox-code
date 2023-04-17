@@ -5,23 +5,25 @@ mod scanner;
 
 use scanner::Scanner;
 use error::LoxError;
-use std::{io::{self, BufRead, Write}, env::args, fs::read_to_string};
-fn main() {
-    let args: Vec<String> = args().collect();
+use std::{io::{self, BufRead, Write}, env, fs};
 
-    if args.len() > 2 {
-        println!("Usage: rlox [script]");
-        std::process::exit(64);
-    } else if args.len() == 2 {
-        run_file(&args[1]).expect("Cannot run file");
-    } else {
-        run_prompt().expect("Cannot run prompt");
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    match args.len() {
+        1 => run_prompt().expect("Cannot run prompt."),
+        2 => run_file(&args[1]).expect("Cannot run file"),
+        _ => {
+            println!("Usage: rlox [script]");
+            std::process::exit(64);
+        }
     }
+
 }
 
-fn run_file(path: &String) -> io::Result<()> {
-    let bytes = read_to_string(path)?;
-    if let Err(e) = run(bytes) {
+fn run_file(path: &str) -> io::Result<()> {
+    let bytes = fs::read_to_string(path)?;
+    if run(bytes).is_err() {
         std::process::exit(65);
     }
     Ok(())     
@@ -37,7 +39,7 @@ fn run_prompt() -> io::Result<()>{
             None => break,
             Some(line) => match line {
                 Err(e) => return Err(e),
-                Ok(line) => if let Err(_) = run(line) {},
+                Ok(line) => if run(line).is_err() {},
             }
         } 
     }  

@@ -1,6 +1,6 @@
 use crate::error::LoxError;
 use crate::tokentype::TokenType;
-use crate::token::{Token, Object};
+use crate::token::{Token, Literal};
 
 // todo: these are looked like an OOP theme code which do not even fit rust
 pub struct Scanner {
@@ -32,13 +32,12 @@ impl Scanner {
             }
         }
         
-        self.tokens.push(Token::eof(self.line));
-        /*
+        self.add_token(TokenType::Eof); 
+
         match had_error {
             Some(e) => Err(e),
             None => Ok(&self.tokens)
-        } */
-        Ok(&self.tokens)
+        }
     }
 
     fn scan_token(&mut self) -> Result<(), LoxError> {
@@ -79,11 +78,21 @@ impl Scanner {
             },
             '"' => self.string()?,
             '0'..='9' => self.number(),
+            'a'..='z' | 'A'..='Z' | '_' => self.indentifier(),
             ' ' | '\r' | '\t' => (),
             '\n' => self.line += 1,
             ch => return Err(LoxError::error(self.line, format!("Unexpected Charactor: '{}'", ch))),
         }
         Ok(())
+    }
+
+    fn indentifier(&mut self) {
+        while let Some('a'..='z' | 'A'..='Z' | '0'..='9' | '_') = self.peek(0) {
+            self.advance();
+        }
+
+        let value: String = self.source[self.start..self.current].iter().collect();
+        self.add_token(Scanner::keywords(&value));
     }
 
     fn number(&mut self) { // what a nice code!
@@ -96,7 +105,7 @@ impl Scanner {
         
         let value: String = self.source[self.start..self.current].iter().collect();
         let num: f64 = value.parse().unwrap();                       
-        self.add_token_object(TokenType::Number, Some(Object::Num(num)));
+        self.add_token_object(TokenType::Number, Some(Literal::Num(num)));
     }
 
     fn string(&mut self) -> Result<(), LoxError> {
@@ -110,13 +119,13 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(LoxError::error(self.line, format!("Unterminated String.")));
+            return Err(LoxError::error(self.line, "Unterminated String.".to_owned()));
         }
 
         self.advance(); // advance after check
         
-        let value: String = self.source[self.start + 1 .. self.current - 1].into_iter().collect();
-        self.add_token_object(TokenType::String, Some(Object::Str(value)));
+        let value: String = self.source[self.start + 1 .. self.current - 1].iter().collect();
+        self.add_token_object(TokenType::String, Some(Literal::Str(value)));
         Ok(())
     }
 
@@ -127,6 +136,28 @@ impl Scanner {
                 true 
             },
             _ => false
+        }
+    }
+
+    fn keywords(check: &str) -> TokenType {
+        match check {
+            "and" => TokenType::And,
+            "class" => TokenType::Class,
+            "else" => TokenType::Else,
+            "false" => TokenType::False,
+            "for" => TokenType::For,
+            "fun" => TokenType::Fun,
+            "if" => TokenType::If,
+            "nil" => TokenType::Nil,
+            "or" => TokenType::Or,
+            "print" => TokenType::Print,
+            "return" => TokenType::Return,
+            "super" => TokenType::Super,
+            "this" => TokenType::This,
+            "true" => TokenType::True,
+            "var" => TokenType::Var,
+            "while" => TokenType::While,
+            _ => TokenType::Identifier,
         }
     }
 
@@ -149,8 +180,8 @@ impl Scanner {
         self.add_token_object(ttype, None);
     }
 
-    fn add_token_object(&mut self, ttype: TokenType, literal: Option<Object>) {
-        let s: String = self.source[self.start..self.current].into_iter().collect(); // convert a [char] to String
+    fn add_token_object(&mut self, ttype: TokenType, literal: Option<Literal>) {
+        let s: String = self.source[self.start..self.current].iter().collect(); // convert a [char] to String
         self.tokens.push(Token::new(ttype, s, literal, self.line));
     }
 }
