@@ -2,6 +2,7 @@ mod error;
 mod tokentype;
 mod token;
 mod scanner;
+mod expr;
 
 use scanner::Scanner;
 use error::LoxError;
