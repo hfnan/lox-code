@@ -1,10 +1,13 @@
 use crate::tokentype::TokenType;
 use std::fmt;
 
-#[derive(Debug)] 
+#[derive(Debug, Clone)] 
 pub enum Literal {
     Num(f64),
     Str(String),
+    False,
+    True,
+    Nil,
 }
 
 impl fmt::Display for Literal {
@@ -12,11 +15,14 @@ impl fmt::Display for Literal {
         match self {
             Self::Num(x) => write!(f, "{x}"),
             Self::Str(x) => write!(f, "\"{x}\""),
+            Self::False => write!(f, "false"),
+            Self::True => write!(f, "true"),
+            Self::Nil => write!(f, "nil"),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub ttype: TokenType,
     pub lexeme: String, 
