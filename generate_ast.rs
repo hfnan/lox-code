@@ -1,16 +1,11 @@
 use std::{io::{self, Write}, fs};
 
-struct TreeType {
-    base_name: String,
-    class_name: String,
-    fields: Vec<String>,
-}
-
 pub fn generate_ast(output_dir: &str) -> io::Result<()>{
+
     define_ast(output_dir, "Expr", &vec![
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
-        "Literal  > value: Literal".to_owned(),
+        "Literal  > value: Option<Literal>".to_owned(),
         "Unary    > operator: Token, right: Box<Expr>".to_owned()
     ])?;
     Ok(())
@@ -24,8 +19,8 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     writeln!(file, "use crate::token::*;")?;   
     writeln!(file)?;
     
-    define_enum(&mut file, base_name, &types)?;
     define_visitor(&mut file, base_name, &types)?;
+    define_enum(&mut file, base_name, &types)?;
     
     for ttype in types {
         let (class_name, fields) = ttype.split_once('>').unwrap();
@@ -37,8 +32,10 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     Ok(())
 }
 
+
+
 fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str) ->  io::Result<()> {
-    writeln!(file, "    fn accept<T>(&self, visitor: &impl {base_name}Visitor<T>) -> Result<T, LoxError> {{")?;
+    writeln!(file, "    pub fn accept<T>(&self, visitor: &impl {base_name}Visitor<T>) -> Result<T, LoxError> {{")?;
     writeln!(file, "        visitor.visit_{}_expr(self)", class_name.to_lowercase())?;
     writeln!(file, "    }}")?;
     writeln!(file)?;
@@ -46,6 +43,18 @@ fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str) ->  io::Res
 }
 
 fn define_impl(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Result<()> {
+    writeln!(file, "impl {base_name} {{")?;
+    writeln!(file, "    pub fn accept<T>(&self, visitor: &impl {base_name}Visitor<T>) -> Result<T, LoxError> {{")?;
+    writeln!(file, "        match self {{")?;
+    for ttype in types {
+        let class_name = ttype.split('>').next().unwrap().trim();
+        writeln!(file, "            {base_name}::{class_name}({}) => {}.accept(visitor),", class_name.to_lowercase(), class_name.to_lowercase())?;
+    }
+    writeln!(file, "        }}")?;
+    writeln!(file, "    }}")?;
+    writeln!(file, "}}")?;
+    writeln!(file)?;
+
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
         writeln!(file, "impl {class_name}{base_name} {{")?;
@@ -79,7 +88,7 @@ fn define_enum(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Re
 fn define_type(file: &mut fs::File, base_name: &str, class_name: &str, fields: &str) -> io::Result<()> {
     writeln!(file, "pub struct {class_name} {{")?;
     for field in fields.split(',') {
-        writeln!(file, "    {},", field.trim())?;
+        writeln!(file, "    pub {},", field.trim())?;
     }
     writeln!(file, "}}")?;
     writeln!(file)

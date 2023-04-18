@@ -3,6 +3,7 @@ mod tokentype;
 mod token;
 mod scanner;
 mod expr;
+mod astprinter;
 
 use scanner::Scanner;
 use error::LoxError;

@@ -18,10 +18,10 @@ impl fmt::Display for Literal {
 
 #[derive(Debug)]
 pub struct Token {
-    ttype: TokenType,
-    lexeme: String, 
-    literal: Option<Literal>,
-    line: usize,
+    pub ttype: TokenType,
+    pub lexeme: String, 
+    pub literal: Option<Literal>,
+    pub line: usize,
 }
 
 impl Token {
