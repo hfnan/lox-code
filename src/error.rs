@@ -26,4 +26,8 @@ impl LoxError {
         }
         err
     }
+
+    pub fn evalerror() -> LoxError {
+        LoxError {token: None, line: 0, message: "".to_owned()}
+    }
 }

@@ -20,7 +20,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     writeln!(file, "use crate::interpreter::*;")?;   
     writeln!(file)?;
     
-    define_visitor(&mut file, base_name, types)?;
+    define_visitor(&mut file, base_name, types, "Output")?;
     define_enum(&mut file, base_name, types)?;
     
     for ttype in types {
@@ -29,23 +29,23 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
         define_type(&mut file, base_name, class_name, fields)?;
     }
 
-    define_impl(&mut file, base_name, types)?;
+    define_impl(&mut file, base_name, types, "Output")?;
     Ok(())
 }
 
 
 
-fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str) ->  io::Result<()> {
-    writeln!(file, "    pub fn accept<T>(&self, visitor: &impl {base_name}Visitor<T>) -> Result<T, LoxError> {{")?;
+fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str, assotype: &str) ->  io::Result<()> {
+    writeln!(file, "    pub fn accept<U>(&self, visitor: &impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
     writeln!(file, "        visitor.visit_{}_expr(self)", class_name.to_lowercase())?;
     writeln!(file, "    }}")?;
     writeln!(file)?;
     Ok(())
 }
 
-fn define_impl(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Result<()> {
+fn define_impl(file: &mut fs::File, base_name: &str, types: &[String], assotype: &str) -> io::Result<()> {
     writeln!(file, "impl {base_name} {{")?;
-    writeln!(file, "    pub fn accept<T>(&self, visitor: &impl {base_name}Visitor<T>) -> Result<T, LoxError> {{")?;
+    writeln!(file, "    pub fn accept<U>(&self, visitor: &impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
     writeln!(file, "        match self {{")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
@@ -59,18 +59,19 @@ fn define_impl(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Re
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
         writeln!(file, "impl {class_name}{base_name} {{")?;
-        define_fn(file, base_name, class_name)?;
+        define_fn(file, base_name, class_name, assotype)?;
         writeln!(file, "}}")?;
         writeln!(file)?;
     }
     Ok(())
 }
 
-fn define_visitor(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Result<()> {
-    writeln!(file, "pub trait {base_name}Visitor<T> {{")?;
+fn define_visitor(file: &mut fs::File, base_name: &str, types: &[String], assotype: &str) -> io::Result<()> {
+    writeln!(file, "pub trait {base_name}Visitor {{")?;
+    writeln!(file, "    type {assotype};")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
-        writeln!(file, "   fn visit_{}_expr(&self, expr: &{class_name}{base_name}) -> Result<T, LoxError>;", class_name.to_lowercase())?;
+        writeln!(file, "    fn visit_{}_expr(&self, expr: &{class_name}{base_name}) -> Result<Self::{assotype}, LoxError>;", class_name.to_lowercase())?;
     }   
     writeln!(file, "}}")?;
     writeln!(file)

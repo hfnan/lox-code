@@ -25,7 +25,6 @@ fn main() {
             std::process::exit(64);
         }
     }
-
 }
 
 fn run_file(path: &str) -> io::Result<()> {
