@@ -1,7 +1,6 @@
 use crate::error::LoxError;
-use crate::tokentype::TokenType;
-use crate::token::{Token, Literal};
-
+use crate::token::{Token, TokenType};
+use crate::interpreter::Object;
 // todo: these are looked like an OOP theme code which do not even fit rust
 pub struct Scanner {
     source: Vec<char>,
@@ -131,7 +130,7 @@ impl Scanner {
         
         let value: String = self.source[self.start..self.current].iter().collect();
         let num: f64 = value.parse().unwrap();                       
-        self.add_token_object(TokenType::Number, Some(Literal::Num(num)));
+        self.add_token_object(TokenType::Number, Some(Object::Num(num)));
     }
 
     fn string(&mut self) -> Result<(), LoxError> {
@@ -151,7 +150,7 @@ impl Scanner {
         self.advance(); // advance after check
         
         let value: String = self.source[self.start + 1 .. self.current - 1].iter().collect();
-        self.add_token_object(TokenType::String, Some(Literal::Str(value)));
+        self.add_token_object(TokenType::String, Some(Object::Str(value)));
         Ok(())
     }
 
@@ -206,7 +205,7 @@ impl Scanner {
         self.add_token_object(ttype, None);
     }
 
-    fn add_token_object(&mut self, ttype: TokenType, literal: Option<Literal>) {
+    fn add_token_object(&mut self, ttype: TokenType, literal: Option<Object>) {
         let s: String = self.source[self.start..self.current].iter().collect(); // convert a [char] to String
         self.tokens.push(Token::new(ttype, s, literal, self.line));
     }

@@ -1,37 +1,63 @@
-use crate::tokentype::TokenType;
 use std::fmt;
+use crate::interpreter::Object;
 
-#[derive(Debug, Clone)] 
-pub enum Literal {
-    Num(f64),
-    Str(String),
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenType {
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    Comma, 
+    Dot,
+    Minus,
+    Plus,
+    SemiColon,
+    Slash,
+    Star,
+    Bang,
+    BangEqual,
+    Assign,
+    Equal,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+    Identifier,
+    String,
+    Number,
+    And,
+    Class,
+    Else,
     False,
-    True,
+    Fun,
+    For,
+    If,
     Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
+    Eof
 }
 
-impl fmt::Display for Literal {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Num(x) => write!(f, "{x}"),
-            Self::Str(x) => write!(f, "\"{x}\""),
-            Self::False => write!(f, "false"),
-            Self::True => write!(f, "true"),
-            Self::Nil => write!(f, "nil"),
-        }
-    }
-}
+
+
+
 
 #[derive(Debug, Clone)]
 pub struct Token {
     pub ttype: TokenType,
     pub lexeme: String, 
-    pub literal: Option<Literal>,
+    pub literal: Option<Object>,
     pub line: usize,
 }
 
 impl Token {
-    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Literal>, line: usize) -> Token {
+    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Token {
         Token {ttype, lexeme, literal, line}
     }
 }

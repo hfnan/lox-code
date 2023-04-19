@@ -5,6 +5,7 @@ mod scanner;
 mod expr;
 mod astprinter;
 mod parser;
+mod interpreter;
 
 use parser::Parser;
 use scanner::Scanner;

@@ -1,5 +1,6 @@
 use crate::error::*;
 use crate::token::*;
+use crate::interpreter::*;
 
 pub trait ExprVisitor<T> {
    fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<T, LoxError>;
@@ -26,7 +27,7 @@ pub struct GroupingExpr {
 }
 
 pub struct LiteralExpr {
-    pub value: Option<Literal>,
+    pub value: Option<Object>,
 }
 
 pub struct UnaryExpr {

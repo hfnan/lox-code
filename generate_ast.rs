@@ -5,7 +5,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
     define_ast(output_dir, "Expr", &[
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
-        "Literal  > value: Option<Literal>".to_owned(),
+        "Literal  > value: Option<Object>".to_owned(),
         "Unary    > operator: Token, right: Box<Expr>".to_owned()
     ])?;
     Ok(())
@@ -17,6 +17,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
     writeln!(file, "use crate::error::*;")?;   
     writeln!(file, "use crate::token::*;")?;   
+    writeln!(file, "use crate::interpreter::*;")?;   
     writeln!(file)?;
     
     define_visitor(&mut file, base_name, types)?;
