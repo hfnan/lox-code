@@ -13,18 +13,8 @@ impl Parser {
         }
     }
 
-    fn is_at_end(&self) -> bool {
-        match self.peek() {
-            Some(token) => token.ttype == TokenType::Eof,
-            None => false,
-        }
-    }
-
     fn peek(&self) -> Option<Token> {
-        match self.tokens.get(self.current) {
-            Some(token) => Some(token.clone()),
-            None => None
-        }
+        self.tokens.get(self.current).cloned() 
     }
 
     fn advance(&mut self) -> Token {
@@ -144,13 +134,47 @@ impl Parser {
                     TokenType::Number | TokenType::String => Ok(Expr::Literal(LiteralExpr{ value: token.literal})),
                     TokenType::LeftParen => {
                         let expr = self.expression()?;
-                        // self.consume(TokenType::RightParen, "Expect ')' after Expression");
+                        self.consume(TokenType::RightParen, "Expect ')' after Expression")?;
                         Ok(Expr::Grouping(GroupingExpr { expression: Box::new(expr) }))
                     }
-                    _ => Err(LoxError::error(0, "Unexpected token in primary expression.".to_owned())) 
+                    _ => Err(LoxError::parsererror(token, "Expect expression.".to_owned())) 
                 }
-            },
+            }
             _ => Err(LoxError::error(0, "Failed primary parser.".to_owned()))
         }
+    }
+
+    fn consume(&mut self, ttype: TokenType, message: &str) -> Result<(), LoxError> {
+        match self.peek() {
+            Some(token) if token.ttype == ttype => {
+                self.advance();
+                Ok(())
+            }
+            _ => Err(LoxError::parsererror(self.peek().unwrap(), message.to_owned()))
+        }
+    }
+
+    fn synchronize(&mut self) {
+        while let Some(token) = self.peek() {
+            match token.ttype {
+                TokenType::Eof | 
+                TokenType::Class |
+                TokenType::Fun | 
+                TokenType::Var |
+                TokenType::For | 
+                TokenType::If | 
+                TokenType::While |
+                TokenType::Print |
+                TokenType::Return => break,
+                _ => {self.advance();},
+            }
+            if matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::SemiColon)) {
+                break;
+            }
+        }
+    }
+
+    pub fn parse(&mut self) -> Result<Expr, LoxError> {
+        self.expression()
     }
 }

@@ -2,7 +2,7 @@ use std::{io::{self, Write}, fs};
 
 pub fn generate_ast(output_dir: &str) -> io::Result<()>{
 
-    define_ast(output_dir, "Expr", &vec![
+    define_ast(output_dir, "Expr", &[
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
         "Literal  > value: Option<Literal>".to_owned(),
@@ -19,8 +19,8 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     writeln!(file, "use crate::token::*;")?;   
     writeln!(file)?;
     
-    define_visitor(&mut file, base_name, &types)?;
-    define_enum(&mut file, base_name, &types)?;
+    define_visitor(&mut file, base_name, types)?;
+    define_enum(&mut file, base_name, types)?;
     
     for ttype in types {
         let (class_name, fields) = ttype.split_once('>').unwrap();
