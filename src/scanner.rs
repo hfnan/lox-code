@@ -1,6 +1,6 @@
 use crate::error::LoxError;
 use crate::token::{Token, TokenType};
-use crate::interpreter::Object;
+use crate::object::Object;
 // todo: these are looked like an OOP theme code which do not even fit rust
 pub struct Scanner {
     source: Vec<char>,
@@ -93,7 +93,7 @@ impl Scanner {
             'a'..='z' | 'A'..='Z' | '_' => self.indentifier(),
             ' ' | '\r' | '\t' => (),
             '\n' => self.line += 1,
-            ch => return Err(LoxError::error(self.line, format!("Unexpected Charactor: '{}'", ch))),
+            ch => return Err(LoxError::error(self.line, &format!("Unexpected Charactor: '{}'", ch))),
         }
         Ok(())
     }
@@ -108,7 +108,7 @@ impl Scanner {
                 _ => {}, 
             }
         }
-        Err(LoxError::error(self.line, "Unterminate block comment.".to_owned()))
+        Err(LoxError::error(self.line, "Unterminate block comment."))
     } 
 
     fn indentifier(&mut self) {
@@ -144,7 +144,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(LoxError::error(self.line, "Unterminated String.".to_owned()));
+            return Err(LoxError::error(self.line, "Unterminated String."));
         }
 
         self.advance(); // advance after check

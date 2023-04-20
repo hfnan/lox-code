@@ -1,6 +1,6 @@
 use crate::error::*;
 use crate::token::*;
-use crate::interpreter::*;
+use crate::object::*;
 
 pub trait ExprVisitor {
     type Output;

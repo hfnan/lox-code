@@ -1,27 +1,4 @@
-use crate::{expr::*, error::LoxError, token::*};
-
-use std::fmt;
-
-#[derive(Debug, Clone)] 
-pub enum Object {
-    Num(f64),
-    Str(String),
-    False,
-    True,
-    Nil,
-}
-
-impl fmt::Display for Object {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Num(x) => write!(f, "{x}"),
-            Self::Str(x) => write!(f, "\"{x}\""),
-            Self::False => write!(f, "false"),
-            Self::True => write!(f, "true"),
-            Self::Nil => write!(f, "nil"),
-        }
-    }
-}
+use crate::{object::Object, expr::*, error::LoxError, token::*};
 
 pub struct Interpreter {
 
@@ -30,7 +7,22 @@ pub struct Interpreter {
 impl ExprVisitor for Interpreter {
     type Output = Object;
     fn visit_binary_expr(&self, expr: &BinaryExpr) -> Result<Self::Output, LoxError> {
-        Ok(Object::Nil)
+        let left = self.evaluate(&expr.left)?;
+        let right = self.evaluate(&expr.right)?;
+
+        match expr.operator.ttype {
+            TokenType::Plus => left + right,
+            TokenType::Minus => left - right,
+            TokenType::Star => left * right,
+            TokenType::Slash => left / right,
+            TokenType::Greater => left.greater(right),
+            TokenType::GreaterEqual => left.greaterequal(right),
+            TokenType::Less => left.less(right),
+            TokenType::LessEqual => left.lessequal(right),
+            TokenType::BangEqual => left.bangequal(right),
+            TokenType::Equal => left.equal(right),
+            _ => Err(LoxError::runtime_error())
+        }
     }   
 
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<Self::Output, LoxError> {
@@ -38,7 +30,7 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<Self::Output, LoxError> {
-        expr.value.clone().ok_or(LoxError::evalerror())
+        expr.value.clone().ok_or(LoxError::runtime_error())
     }
     
 
@@ -47,13 +39,10 @@ impl ExprVisitor for Interpreter {
         let right = self.evaluate(&expr.right)?;
 
         match expr.operator.ttype {
-            TokenType::Minus => match right {
-                Object::Num(val) => Ok(Object::Num(-val)),
-                _ => Err(LoxError::evalerror())
-            },
-            TokenType::Bang => self.reverse(self.is_truthy(&right)),
+            TokenType::Minus => - right,
+            TokenType::Bang => ! right,
 
-            _ => Err(LoxError::evalerror())
+            _ => Err(LoxError::runtime_error())
         }
     }
 }
@@ -63,19 +52,10 @@ impl Interpreter {
         expr.accept(self)
     }
 
-    fn reverse(&self, object: Object) -> Result<Object, LoxError> {
-        match object {
-            Object::True => Ok(Object::False),
-            Object::False => Ok(Object::True),
-            _ => Err(LoxError::evalerror())
+    pub fn interpret(&self, expr: &Expr) {
+        match self.evaluate(expr) {
+            Ok(value) => println!("{}",value),
+            Err(e) => e.report("")
         }
     }
-
-    fn is_truthy(&self, object: &Object) -> Object {
-        match object {
-            Object::Nil => Object::False,
-            Object::False | Object::True => object.clone(), 
-            _ => Object::True,
-        }
-    } 
 }

@@ -1,5 +1,5 @@
 mod error;
-mod tokentype;
+mod object;
 mod token;
 mod scanner;
 mod expr;
@@ -7,6 +7,7 @@ mod astprinter;
 mod parser;
 mod interpreter;
 
+use interpreter::Interpreter;
 use parser::Parser;
 use scanner::Scanner;
 use error::LoxError;
@@ -63,8 +64,11 @@ fn run(source: String) -> Result<(), LoxError> {
         Err(_) => return Ok(()),
     };
 
-    let printer = AstPrinter {};
-    println!("{}", printer.print(&expression).unwrap());
+    let interp = Interpreter {};
+    interp.interpret(&expression);
+
+    // let printer = AstPrinter {};
+    // println!("{}", printer.print(&expression)?);
     Ok(())
 }
 

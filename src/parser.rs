@@ -1,4 +1,4 @@
-use crate::{error::LoxError, expr::*, token::*, interpreter::Object};
+use crate::{error::LoxError, expr::*, token::*, object::Object};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -131,10 +131,10 @@ impl Parser {
                 self.advance();
                 match token.ttype {
                     TokenType::False => Ok(Expr::Literal(LiteralExpr {
-                        value: Some(Object::False),
+                        value: Some(Object::Bool(false)),
                     })),
                     TokenType::True => Ok(Expr::Literal(LiteralExpr {
-                        value: Some(Object::True),
+                        value: Some(Object::Bool(true)),
                     })),
                     TokenType::Nil => Ok(Expr::Literal(LiteralExpr {
                         value: Some(Object::Nil),
@@ -149,13 +149,12 @@ impl Parser {
                             expression: Box::new(expr),
                         }))
                     }
-                    _ => Err(LoxError::parsererror(
+                    _ => Err(LoxError::parse_error(
                         token,
-                        "Expect expression.".to_owned(),
-                    )),
+                        "Expect expression.")),
                 }
             }
-            _ => Err(LoxError::error(0, "Failed primary parser.".to_owned())),
+            _ => Err(LoxError::error(0, "Failed primary parser.")),
         }
     }
 
@@ -165,9 +164,9 @@ impl Parser {
                 self.advance();
                 Ok(())
             }
-            _ => Err(LoxError::parsererror(
+            _ => Err(LoxError::parse_error(
                 self.peek().unwrap(),
-                message.to_owned(),
+                message,
             )),
         }
     }

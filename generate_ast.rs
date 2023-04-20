@@ -17,7 +17,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
     writeln!(file, "use crate::error::*;")?;   
     writeln!(file, "use crate::token::*;")?;   
-    writeln!(file, "use crate::interpreter::*;")?;   
+    writeln!(file, "use crate::object::*;")?;   
     writeln!(file)?;
     
     define_visitor(&mut file, base_name, types, "Output")?;
