@@ -79,15 +79,6 @@ impl Scanner {
                 },
                 _ => self.add_token(TokenType::Slash),
             },
-            /* 
-            '/' => match self.is_match('/'){
-                true => while let Some(ch) = self.peek(0) { match ch {
-                    '\n' => break,
-                    _ => self.advance(),
-                };}, 
-                false => self.add_token(TokenType::Slash),
-            },
-            */
             '"' => self.string()?,
             '0'..='9' => self.number(),
             'a'..='z' | 'A'..='Z' | '_' => self.indentifier(),

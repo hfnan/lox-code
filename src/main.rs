@@ -6,14 +6,15 @@ mod expr;
 mod astprinter;
 mod parser;
 mod interpreter;
+mod stmt;
 
 use interpreter::Interpreter;
 use parser::Parser;
 use scanner::Scanner;
 use error::LoxError;
-use std::{io::{self, BufRead, Write}, env, fs};
-
 use crate::astprinter::AstPrinter;
+
+use std::{io::{self, BufRead, Write}, env, fs};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -58,14 +59,18 @@ fn run(source: String) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
 
+    // for token in tokens {
+    //     println!("{}", token);
+    // }
+    
     let mut parser = Parser::new(tokens.to_owned());
-    let expression = match parser.parse() {
+    let statements = match parser.parse() {
         Ok(expr) => expr,
         Err(_) => return Ok(()),
     };
 
     let interp = Interpreter {};
-    interp.interpret(&expression);
+    interp.interpret(statements);
 
     // let printer = AstPrinter {};
     // println!("{}", printer.print(&expression)?);

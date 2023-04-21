@@ -1,4 +1,4 @@
-use crate::{object::Object, expr::*, error::LoxError, token::*};
+use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*};
 
 pub struct Interpreter {
 
@@ -41,9 +41,22 @@ impl ExprVisitor for Interpreter {
         match expr.operator.ttype {
             TokenType::Minus => - right,
             TokenType::Bang => ! right,
-
             _ => Err(LoxError::runtime_error())
         }
+    }
+}
+
+impl StmtVisitor for Interpreter {
+    type Output = ();
+    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError> {
+        self.evaluate(&stmt.expression)?;
+        Ok(())
+    }
+
+    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<Self::Output, LoxError> {
+        let value = self.evaluate(&stmt.expression)?;
+        println!("{}", value);
+        Ok(())
     }
 }
 
@@ -52,10 +65,15 @@ impl Interpreter {
         expr.accept(self)
     }
 
-    pub fn interpret(&self, expr: &Expr) {
-        match self.evaluate(expr) {
-            Ok(value) => println!("{}",value),
-            Err(e) => e.report("")
+    fn execute(&self, stmt: &Stmt) -> Result<(), LoxError> {
+        stmt.accept(self)
+    }
+
+    pub fn interpret(&self, stmts: Vec<Stmt>) {
+        for stmt in stmts {
+            if let Err(e) = self.execute(&stmt) {
+                e.report("");
+            }
         }
     }
 }

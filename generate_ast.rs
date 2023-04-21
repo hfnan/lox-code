@@ -8,6 +8,11 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Literal  > value: Option<Object>".to_owned(),
         "Unary    > operator: Token, right: Box<Expr>".to_owned()
     ])?;
+
+    define_ast(output_dir, "Stmt", &[
+        "Expression > expression: Box<Expr>".to_owned(),
+        "Print      > expression: Box<Expr>".to_owned(),
+    ])?;
     Ok(())
 }
 
@@ -17,7 +22,10 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
     writeln!(file, "use crate::error::*;")?;   
     writeln!(file, "use crate::token::*;")?;   
-    writeln!(file, "use crate::object::*;")?;   
+    writeln!(file, "use crate::object::*;")?; 
+    if let "Stmt" = base_name {
+        writeln!(file, "use crate::expr::*;")?;
+    }  
     writeln!(file)?;
     
     define_visitor(&mut file, base_name, types, "Output")?;
@@ -37,7 +45,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
 fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str, assotype: &str) ->  io::Result<()> {
     writeln!(file, "    pub fn accept<U>(&self, visitor: &impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
-    writeln!(file, "        visitor.visit_{}_expr(self)", class_name.to_lowercase())?;
+    writeln!(file, "        visitor.visit_{}_{}(self)", class_name.to_lowercase(), base_name.to_lowercase())?;
     writeln!(file, "    }}")?;
     writeln!(file)?;
     Ok(())
@@ -71,7 +79,7 @@ fn define_visitor(file: &mut fs::File, base_name: &str, types: &[String], assoty
     writeln!(file, "    type {assotype};")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
-        writeln!(file, "    fn visit_{}_expr(&self, expr: &{class_name}{base_name}) -> Result<Self::{assotype}, LoxError>;", class_name.to_lowercase())?;
+        writeln!(file, "    fn visit_{}_{}(&self, {}: &{class_name}{base_name}) -> Result<Self::{assotype}, LoxError>;", class_name.to_lowercase(), base_name.to_lowercase(), base_name.to_lowercase())?;
     }   
     writeln!(file, "}}")?;
     writeln!(file)
