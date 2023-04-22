@@ -28,7 +28,20 @@ impl LoxError {
         err
     }
 
-    pub fn runtime_error() -> LoxError {
+    pub fn runtime_error(token: Option<&Token>, message: Option<&str>) -> LoxError {
+        let mut err = LoxError::basic_runtime_error();
+        if let Some(message) = message {
+            err.message = message.to_owned();
+        }
+
+        if let Some(token) = token {
+            err.token = Some(token.clone());
+            err.line = token.line;
+        }
+        err
+    }
+
+    fn basic_runtime_error() -> LoxError {
         LoxError { token: None, line: 0, message: "there is something wrong when interpreting.".to_owned() }
     }
 }

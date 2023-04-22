@@ -21,7 +21,7 @@ impl ExprVisitor for Interpreter {
             TokenType::LessEqual => left.lessequal(right),
             TokenType::BangEqual => left.bangequal(right),
             TokenType::Equal => left.equal(right),
-            _ => Err(LoxError::runtime_error())
+            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some("Unexpected operator in binary expression.")))
         }
     }   
 
@@ -30,7 +30,7 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<Self::Output, LoxError> {
-        expr.value.clone().ok_or(LoxError::runtime_error())
+        expr.value.clone().ok_or(LoxError::runtime_error(None, Some("There is no valid literal!")))
     }
     
 
@@ -41,7 +41,7 @@ impl ExprVisitor for Interpreter {
         match expr.operator.ttype {
             TokenType::Minus => - right,
             TokenType::Bang => ! right,
-            _ => Err(LoxError::runtime_error())
+            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some("cannot use operator like unary.")))
         }
     }
 }
