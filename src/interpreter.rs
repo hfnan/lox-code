@@ -44,6 +44,10 @@ impl ExprVisitor for Interpreter {
             _ => Err(LoxError::runtime_error(Some(&expr.operator), Some("cannot use operator like unary.")))
         }
     }
+
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<Self::Output, LoxError> {
+        Ok(Object::Nil)
+    }
 }
 
 impl StmtVisitor for Interpreter {
@@ -56,6 +60,10 @@ impl StmtVisitor for Interpreter {
     fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&stmt.expression)?;
         println!("{}", value);
+        Ok(())
+    }
+
+    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<Self::Output, LoxError> {
         Ok(())
     }
 }

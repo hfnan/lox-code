@@ -8,6 +8,7 @@ pub trait ExprVisitor {
     fn visit_grouping_expr(&self, expr: &GroupingExpr) -> Result<Self::Output, LoxError>;
     fn visit_literal_expr(&self, expr: &LiteralExpr) -> Result<Self::Output, LoxError>;
     fn visit_unary_expr(&self, expr: &UnaryExpr) -> Result<Self::Output, LoxError>;
+    fn visit_variable_expr(&self, expr: &VariableExpr) -> Result<Self::Output, LoxError>;
 }
 
 pub enum Expr {
@@ -15,6 +16,7 @@ pub enum Expr {
     Grouping(GroupingExpr),
     Literal(LiteralExpr),
     Unary(UnaryExpr),
+    Variable(VariableExpr),
 }
 
 pub struct BinaryExpr {
@@ -36,6 +38,10 @@ pub struct UnaryExpr {
     pub right: Box<Expr>,
 }
 
+pub struct VariableExpr {
+    pub name: Token,
+}
+
 impl Expr {
     pub fn accept<U>(&self, visitor: &impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
         match self {
@@ -43,6 +49,7 @@ impl Expr {
             Expr::Grouping(grouping) => grouping.accept(visitor),
             Expr::Literal(literal) => literal.accept(visitor),
             Expr::Unary(unary) => unary.accept(visitor),
+            Expr::Variable(variable) => variable.accept(visitor),
         }
     }
 }
@@ -71,6 +78,13 @@ impl LiteralExpr {
 impl UnaryExpr {
     pub fn accept<U>(&self, visitor: &impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_unary_expr(self)
+    }
+
+}
+
+impl VariableExpr {
+    pub fn accept<U>(&self, visitor: &impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_variable_expr(self)
     }
 
 }

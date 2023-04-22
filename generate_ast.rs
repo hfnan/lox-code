@@ -6,12 +6,14 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
         "Literal  > value: Option<Object>".to_owned(),
-        "Unary    > operator: Token, right: Box<Expr>".to_owned()
+        "Unary    > operator: Token, right: Box<Expr>".to_owned(),
+        "Variable > name: Token".to_owned(),
     ])?;
 
     define_ast(output_dir, "Stmt", &[
         "Expression > expression: Box<Expr>".to_owned(),
         "Print      > expression: Box<Expr>".to_owned(),
+        "Var        > name: Token, initializer: Option<Expr>".to_owned(),
     ])?;
     Ok(())
 }

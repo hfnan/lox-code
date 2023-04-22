@@ -3,7 +3,6 @@ mod object;
 mod token;
 mod scanner;
 mod expr;
-mod astprinter;
 mod parser;
 mod interpreter;
 mod stmt;
@@ -12,7 +11,6 @@ use interpreter::Interpreter;
 use parser::Parser;
 use scanner::Scanner;
 use error::LoxError;
-use crate::astprinter::AstPrinter;
 
 use std::{io::{self, BufRead, Write}, env, fs};
 

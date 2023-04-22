@@ -1,4 +1,4 @@
-use crate::{error::LoxError, expr::{*, self}, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt}};
+use crate::{error::LoxError, expr::{*, self}, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt}};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -142,6 +142,7 @@ impl Parser {
                     TokenType::Number | TokenType::String => Ok(Expr::Literal(LiteralExpr {
                         value: token.literal,
                     })),
+                    TokenType::Identifier => Ok(Expr::Variable(VariableExpr { name: token })),
                     TokenType::LeftParen => {
                         let expr = self.expression()?;
                         self.consume(TokenType::RightParen, "Expect ')' after Expression")?;
@@ -158,11 +159,11 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, ttype: TokenType, message: &str) -> Result<(), LoxError> {
+    fn consume(&mut self, ttype: TokenType, message: &str) -> Result<Token, LoxError> {
         match self.peek() {
             Some(token) if token.ttype == ttype => {
                 self.advance();
-                Ok(())
+                Ok(self.peek().unwrap_or(Token::eof()))
             }
             _ => Err(LoxError::parse_error(
                 self.peek().unwrap(),
@@ -215,10 +216,39 @@ impl Parser {
         Ok(Stmt::Expression(ExpressionStmt { expression: Box::new(expression) }))
     }
 
+    fn declaration(&mut self) -> Result<Stmt, LoxError> {
+        let res = match self.peek() {
+            Some(token) if token.ttype == TokenType::Var => {
+                self.advance();
+                self.var_declaration()
+            }
+            _ => self.statement()
+        };
+
+        if res.is_err() {
+            self.synchronize();
+        }
+        res
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, "Expect Variable name.")?;
+        let initializer = match self.peek() {
+            Some(token) if token.ttype == TokenType::Assign => {
+                self.advance();
+                Some(self.expression()?)
+            },
+            _ => None,
+        };
+
+        self.consume(TokenType::SemiColon, "Expect ';' after variable declaration.");
+        Ok(Stmt::Var(VarStmt { name, initializer }))
+    }
+
     pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {
         let mut statements = Vec::new();
         while matches!(self.peek(), Some(token) if !matches!(token.ttype, TokenType::Eof)) {
-            statements.push(self.statement()?);
+            statements.push(self.declaration()?);
         }
         Ok(statements)
     }
