@@ -163,7 +163,7 @@ impl Parser {
         match self.peek() {
             Some(token) if token.ttype == ttype => {
                 self.advance();
-                Ok(self.peek().unwrap_or(Token::eof()))
+                Ok(token)
             }
             _ => Err(LoxError::parse_error(
                 self.peek().unwrap(),
@@ -241,7 +241,7 @@ impl Parser {
             _ => None,
         };
 
-        self.consume(TokenType::SemiColon, "Expect ';' after variable declaration.");
+        self.consume(TokenType::SemiColon, "Expect ';' after variable declaration.")?;
         Ok(Stmt::Var(VarStmt { name, initializer }))
     }
 
@@ -253,3 +253,4 @@ impl Parser {
         Ok(statements)
     }
 }
+

@@ -46,7 +46,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
 
 fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str, assotype: &str) ->  io::Result<()> {
-    writeln!(file, "    pub fn accept<U>(&self, visitor: &impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
+    writeln!(file, "    pub fn accept<U>(&self, visitor: &mut impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
     writeln!(file, "        visitor.visit_{}_{}(self)", class_name.to_lowercase(), base_name.to_lowercase())?;
     writeln!(file, "    }}")?;
     writeln!(file)?;
@@ -55,7 +55,7 @@ fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str, assotype: &
 
 fn define_impl(file: &mut fs::File, base_name: &str, types: &[String], assotype: &str) -> io::Result<()> {
     writeln!(file, "impl {base_name} {{")?;
-    writeln!(file, "    pub fn accept<U>(&self, visitor: &impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
+    writeln!(file, "    pub fn accept<U>(&self, visitor: &mut impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
     writeln!(file, "        match self {{")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
@@ -81,7 +81,7 @@ fn define_visitor(file: &mut fs::File, base_name: &str, types: &[String], assoty
     writeln!(file, "    type {assotype};")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
-        writeln!(file, "    fn visit_{}_{}(&self, {}: &{class_name}{base_name}) -> Result<Self::{assotype}, LoxError>;", class_name.to_lowercase(), base_name.to_lowercase(), base_name.to_lowercase())?;
+        writeln!(file, "    fn visit_{}_{}(&mut self, {}: &{class_name}{base_name}) -> Result<Self::{assotype}, LoxError>;", class_name.to_lowercase(), base_name.to_lowercase(), base_name.to_lowercase())?;
     }   
     writeln!(file, "}}")?;
     writeln!(file)

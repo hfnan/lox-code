@@ -6,6 +6,7 @@ mod expr;
 mod parser;
 mod interpreter;
 mod stmt;
+mod environment;
 
 use interpreter::Interpreter;
 use parser::Parser;
@@ -29,7 +30,8 @@ fn main() {
 
 fn run_file(path: &str) -> io::Result<()> {
     let bytes = fs::read_to_string(path)?;
-    if run(bytes).is_err() {
+    let mut interp = Interpreter::new();
+    if run(bytes, &mut interp).is_err() {
         std::process::exit(65);
     }
     Ok(())     
@@ -37,6 +39,7 @@ fn run_file(path: &str) -> io::Result<()> {
 
 fn run_prompt() -> io::Result<()>{
     let mut reader = io::stdin().lock().lines();
+    let mut interp = Interpreter::new();
     loop {
         print!("> ");
         io::stdout().flush()?; 
@@ -45,7 +48,7 @@ fn run_prompt() -> io::Result<()>{
             None => break,
             Some(line) => match line {
                 Err(e) => return Err(e),
-                Ok(line) => if run(line).is_err() {},
+                Ok(line) => if run(line, &mut interp).is_err() {},
             }
         } 
     }  
@@ -53,7 +56,7 @@ fn run_prompt() -> io::Result<()>{
 }
 
 
-fn run(source: String) -> Result<(), LoxError> {
+fn run(source: String, interp: &mut Interpreter) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
 
@@ -67,7 +70,6 @@ fn run(source: String) -> Result<(), LoxError> {
         Err(_) => return Ok(()),
     };
 
-    let interp = Interpreter {};
     interp.interpret(statements);
 
     // let printer = AstPrinter {};

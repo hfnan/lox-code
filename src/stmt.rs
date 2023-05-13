@@ -5,9 +5,9 @@ use crate::expr::*;
 
 pub trait StmtVisitor {
     type Output;
-    fn visit_expression_stmt(&self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError>;
-    fn visit_print_stmt(&self, stmt: &PrintStmt) -> Result<Self::Output, LoxError>;
-    fn visit_var_stmt(&self, stmt: &VarStmt) -> Result<Self::Output, LoxError>;
+    fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError>;
+    fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<Self::Output, LoxError>;
+    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError>;
 }
 
 pub enum Stmt {
@@ -30,7 +30,7 @@ pub struct VarStmt {
 }
 
 impl Stmt {
-    pub fn accept<U>(&self, visitor: &impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         match self {
             Stmt::Expression(expression) => expression.accept(visitor),
             Stmt::Print(print) => print.accept(visitor),
@@ -40,21 +40,21 @@ impl Stmt {
 }
 
 impl ExpressionStmt {
-    pub fn accept<U>(&self, visitor: &impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_expression_stmt(self)
     }
 
 }
 
 impl PrintStmt {
-    pub fn accept<U>(&self, visitor: &impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_print_stmt(self)
     }
 
 }
 
 impl VarStmt {
-    pub fn accept<U>(&self, visitor: &impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_var_stmt(self)
     }
 
