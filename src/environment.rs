@@ -18,8 +18,8 @@ impl Environment {
         Self { values: HashMap::new(), enclosing: None }
     }
 
-    pub fn from(enclosing: Self) -> Self {
-        Self { values: HashMap::new(), enclosing: Some(Rc::new(RefCell::new(enclosing)))}
+    pub fn from(enclosing: Rc<RefCell<Self>>) -> Self {
+        Self { values: HashMap::new(), enclosing: Some(enclosing)}
     }
 
     pub fn define(&mut self, name: String, value: Object) {

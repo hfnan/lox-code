@@ -1,4 +1,4 @@
-use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt, BlockStmt, IfStmt}};
+use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::*};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -256,9 +256,23 @@ impl Parser {
             Some(token) if token.ttype == TokenType::If => {
                 self.advance();
                 self.if_statement()
+            },
+            Some(token) if token.ttype == TokenType::While => {
+                self.advance();
+                self.while_statement()
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn while_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expected '(' after 'while'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expected ')' after condition.")?;
+    
+        let body = Box::new(self.statement()?);
+        
+        Ok(Stmt::While(WhileStmt {condition, body}))
     }
 
     fn if_statement(&mut self) -> Result<Stmt, LoxError> {

@@ -1,7 +1,10 @@
 use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, environment::Environment};
+use std::{env, primitive};
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Interpreter {
-    environment: Environment,
+    environment: Rc<RefCell<Environment>>,
 }
 
 impl ExprVisitor for Interpreter {
@@ -19,7 +22,7 @@ impl ExprVisitor for Interpreter {
 
     fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&expr.value)?;
-        self.environment.assign(expr.name.clone(), value.clone())?;
+        self.environment.borrow_mut().assign(expr.name.clone(), value.clone())?;
         Ok(value)
     }
 
@@ -63,12 +66,19 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_variable_expr(&mut self, expr: &VariableExpr) -> Result<Self::Output, LoxError> {
-        self.environment.get(expr.name.clone())
+        self.environment.borrow().get(expr.name.clone())
     }
 }
 
 impl StmtVisitor for Interpreter {
     type Output = ();
+
+    fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> Result<Self::Output, LoxError> {
+        while Self::is_truthy(&self.evaluate(&stmt.condition)?) {
+            self.execute(&stmt.body)?;
+        } 
+        Ok(())
+    }
     
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError> {
         if !matches!(self.evaluate(&stmt.condition)?, Object::Nil | Object::Bool(false)) {
@@ -81,7 +91,7 @@ impl StmtVisitor for Interpreter {
     }
 
     fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError> {
-        self.execute_block(&stmt.statements, Environment::from(self.environment.clone()))
+        self.execute_block(&stmt.statements, Environment::from(Rc::clone(&self.environment)))
     }
 
     fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError> {
@@ -102,7 +112,7 @@ impl StmtVisitor for Interpreter {
             Object::Nil
         };
         
-        self.environment.define(stmt.name.lexeme.clone(), value);
+        self.environment.borrow_mut().define(stmt.name.lexeme.clone(), value);
         Ok(())
     }
 }
@@ -110,7 +120,7 @@ impl StmtVisitor for Interpreter {
 impl Interpreter {
     pub fn new() -> Self {
         Self {
-            environment: Environment::new()
+            environment: Rc::new(RefCell::new(Environment::new()))
         }
     }
 
@@ -127,18 +137,12 @@ impl Interpreter {
     }
 
     fn execute_block(&mut self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
-        let previous = self.environment.clone();
-        self.environment = environment;
-    
-        // let res = statements.iter()
-        //     .map(|stmt| self.execute(stmt))
-        //     .collect::<Result<Vec<_>,_>>()
-        //     .map(|_| ());
+        let previous = Rc::clone(&self.environment);
+        self.environment = Rc::new(RefCell::new(environment));
 
         let res = statements.iter().try_for_each(|stmt| self.execute(stmt));
 
-        self.environment = previous;
-        
+        self.environment = previous;        
         res
     }
 

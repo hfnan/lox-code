@@ -9,6 +9,7 @@ pub trait StmtVisitor {
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError>;
     fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<Self::Output, LoxError>;
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError>;
+    fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> Result<Self::Output, LoxError>;
 }
 
 pub enum Stmt {
@@ -17,6 +18,7 @@ pub enum Stmt {
     If(IfStmt),
     Print(PrintStmt),
     Var(VarStmt),
+    While(WhileStmt),
 }
 
 pub struct BlockStmt {
@@ -42,6 +44,11 @@ pub struct VarStmt {
     pub initializer: Option<Expr>,
 }
 
+pub struct WhileStmt {
+    pub condition: Expr,
+    pub body: Box<Stmt>,
+}
+
 impl Stmt {
     pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         match self {
@@ -50,6 +57,7 @@ impl Stmt {
             Stmt::If(ifstmt) => ifstmt.accept(visitor),
             Stmt::Print(printstmt) => printstmt.accept(visitor),
             Stmt::Var(varstmt) => varstmt.accept(visitor),
+            Stmt::While(whilestmt) => whilestmt.accept(visitor),
         }
     }
 }
@@ -85,6 +93,13 @@ impl PrintStmt {
 impl VarStmt {
     pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_var_stmt(self)
+    }
+
+}
+
+impl WhileStmt {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_while_stmt(self)
     }
 
 }
