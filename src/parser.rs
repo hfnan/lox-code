@@ -26,7 +26,24 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.assignment()
+        self.comma()
+    }
+
+    fn comma(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.assignment()?;
+
+        while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
+            let operator = self.peek().unwrap();
+            self.advance();
+            let right = self.assignment()?;
+            expr = Expr::Binary(BinaryExpr {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            });
+        }
+
+        Ok(expr)
     }
 
     fn assignment(&mut self) -> Result<Expr, LoxError> {
@@ -72,23 +89,6 @@ impl Parser {
      
         Ok(expr)
     }
-
-    // fn comma(&mut self) -> Result<Expr, LoxError> {
-    //     let mut expr = self.equality()?;
-
-    //     while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
-    //         let operator = self.peek().unwrap();
-    //         self.advance();
-    //         let right = self.equality()?;
-    //         expr = Expr::Binary(BinaryExpr {
-    //             left: Box::new(expr),
-    //             operator,
-    //             right: Box::new(right),
-    //         });
-    //     }
-
-    //     Ok(expr)
-    // }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;

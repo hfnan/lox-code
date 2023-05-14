@@ -41,7 +41,8 @@ impl ExprVisitor for Interpreter {
             TokenType::LessEqual => left.lessequal(right),
             TokenType::BangEqual => left.bangequal(right),
             TokenType::Equal => left.equal(right),
-            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some("Unexpected operator in binary expression.")))
+            TokenType::Comma => Ok(right),
+            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some(&format!("Unexpected operator '{}' in binary expression.", expr.operator.lexeme))))
         }
     }   
 
