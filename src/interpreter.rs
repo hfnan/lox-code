@@ -7,6 +7,16 @@ pub struct Interpreter {
 impl ExprVisitor for Interpreter {
     type Output = Object;
 
+    fn visit_logical_expr(&mut self, expr: &LogicalExpr) -> Result<Self::Output, LoxError> {
+        let left = self.evaluate(&expr.left)?;
+
+        match expr.operator.ttype {
+            TokenType::Or if Self::is_truthy(&left) => Ok(left),
+            TokenType::And if !Self::is_truthy(&left) => Ok(left),
+            _ => self.evaluate(&expr.right)
+        }
+    }
+
     fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&expr.value)?;
         self.environment.assign(expr.name.clone(), value.clone())?;
@@ -37,7 +47,7 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_literal_expr(&mut self, expr: &LiteralExpr) -> Result<Self::Output, LoxError> {
-        expr.value.clone().ok_or(LoxError::runtime_error(None, Some("There is no valid literal!")))
+        expr.value.clone().ok_or_else(|| LoxError::runtime_error(None, Some("There is no valid literal!")))
     }
     
 
@@ -69,7 +79,7 @@ impl StmtVisitor for Interpreter {
             Ok(())
         }
     }
-    
+
     fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError> {
         self.execute_block(&stmt.statements, Environment::from(self.environment.clone()))
     }
@@ -102,6 +112,10 @@ impl Interpreter {
         Self {
             environment: Environment::new()
         }
+    }
+
+    fn is_truthy(object: &Object) -> bool {
+        !matches!(object, Object::Bool(false) | Object::Nil)
     }
 
     fn evaluate(&mut self, expr: &Expr) -> Result<Object, LoxError> {

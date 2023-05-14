@@ -30,7 +30,7 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Result<Expr, LoxError> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         match self.peek() {
             Some(token) if token.ttype == TokenType::Assign => {
@@ -47,6 +47,29 @@ impl Parser {
             },
             _ => ()
         }
+        Ok(expr)
+    }
+
+    fn or(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.and()?;
+        while matches!(self.peek(), Some(token) if token.ttype == TokenType::Or) {
+            let operator = self.peek().unwrap();
+            self.advance();
+            let right = Box::new(self.and()?);
+            expr = Expr::Logical(LogicalExpr { left: Box::new(expr), operator, right })
+        }
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.equality()?;
+        while matches!(self.peek(), Some(token) if token.ttype == TokenType::And) {
+            let operator = self.peek().unwrap();
+            self.advance();
+            let right = Box::new(self.and()?);
+            expr = Expr::Logical(LogicalExpr { left: Box::new(expr), operator, right })
+        }
+     
         Ok(expr)
     }
 

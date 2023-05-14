@@ -7,6 +7,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
         "Literal  > value: Option<Object>".to_owned(),
+        "Logical  > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Unary    > operator: Token, right: Box<Expr>".to_owned(),
         "Variable > name: Token".to_owned(),
     ])?;

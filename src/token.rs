@@ -60,10 +60,6 @@ impl Token {
     pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Token {
         Token {ttype, lexeme, literal, line}
     }
-
-    pub fn eof() -> Token {
-        Token { ttype: TokenType::Eof, lexeme: "".to_owned(), literal: None, line: 0}
-    }
 }
 
 impl fmt::Display for Token {
