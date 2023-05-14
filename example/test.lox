@@ -1,7 +1,5 @@
-/* a block comment */ ()
-/* a block comment in line 2 */ !
-/* a block comment in line 3 /* a nest block comment */ end of comment */ !
-/* a multi lines block comment 
-   next line ! 
-   god
-   /* a nest comment */ / */ why /* here */ / /
+var a = 1;
+{
+   var a = a + 2;
+   print a;
+}

@@ -60,6 +60,16 @@ impl ExprVisitor for Interpreter {
 impl StmtVisitor for Interpreter {
     type Output = ();
     
+    fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError> {
+        if !matches!(self.evaluate(&stmt.condition)?, Object::Nil | Object::Bool(false)) {
+            self.execute(&stmt.then_branch)
+        } else if let Some(else_branch) = &stmt.else_branch {
+            self.execute(else_branch)
+        } else {
+            Ok(())
+        }
+    }
+    
     fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError> {
         self.execute_block(&stmt.statements, Environment::from(self.environment.clone()))
     }
@@ -106,13 +116,16 @@ impl Interpreter {
         let previous = self.environment.clone();
         self.environment = environment;
     
-        let res: Result<Vec<_>, _> = statements.iter()
-            .map(|stmt| self.execute(stmt))
-            .collect();
-        
+        // let res = statements.iter()
+        //     .map(|stmt| self.execute(stmt))
+        //     .collect::<Result<Vec<_>,_>>()
+        //     .map(|_| ());
+
+        let res = statements.iter().try_for_each(|stmt| self.execute(stmt));
+
         self.environment = previous;
         
-        res.map(|_| ())
+        res
     }
 
     pub fn interpret(&mut self, stmts: Vec<Stmt>) {

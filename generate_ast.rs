@@ -13,8 +13,9 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
 
     define_ast(output_dir, "Stmt", &[
         "Block      > statements: Vec<Stmt>".to_owned(),
-        "Expression > expression: Box<Expr>".to_owned(),
-        "Print      > expression: Box<Expr>".to_owned(),
+        "Expression > expression: Expr".to_owned(),
+        "If         > condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>".to_owned(),
+        "Print      > expression: Expr".to_owned(),
         "Var        > name: Token, initializer: Option<Expr>".to_owned(),
     ])?;
     Ok(())
@@ -26,7 +27,9 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
 
     writeln!(file, "use crate::error::*;")?;   
     writeln!(file, "use crate::token::*;")?;   
-    writeln!(file, "use crate::object::*;")?; 
+    if let "Expr" = base_name {
+        writeln!(file, "use crate::object::*;")?;
+    }
     if let "Stmt" = base_name {
         writeln!(file, "use crate::expr::*;")?;
     }  
@@ -61,7 +64,7 @@ fn define_impl(file: &mut fs::File, base_name: &str, types: &[String], assotype:
     writeln!(file, "        match self {{")?;
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
-        writeln!(file, "            {base_name}::{class_name}({}) => {}.accept(visitor),", class_name.to_lowercase(), class_name.to_lowercase())?;
+        writeln!(file, "            {base_name}::{class_name}({}stmt) => {}stmt.accept(visitor),", class_name.to_lowercase(), class_name.to_lowercase())?;
     }
     writeln!(file, "        }}")?;
     writeln!(file, "    }}")?;

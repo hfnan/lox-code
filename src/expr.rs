@@ -52,12 +52,12 @@ pub struct VariableExpr {
 impl Expr {
     pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
         match self {
-            Expr::Assign(assign) => assign.accept(visitor),
-            Expr::Binary(binary) => binary.accept(visitor),
-            Expr::Grouping(grouping) => grouping.accept(visitor),
-            Expr::Literal(literal) => literal.accept(visitor),
-            Expr::Unary(unary) => unary.accept(visitor),
-            Expr::Variable(variable) => variable.accept(visitor),
+            Expr::Assign(assignstmt) => assignstmt.accept(visitor),
+            Expr::Binary(binarystmt) => binarystmt.accept(visitor),
+            Expr::Grouping(groupingstmt) => groupingstmt.accept(visitor),
+            Expr::Literal(literalstmt) => literalstmt.accept(visitor),
+            Expr::Unary(unarystmt) => unarystmt.accept(visitor),
+            Expr::Variable(variablestmt) => variablestmt.accept(visitor),
         }
     }
 }

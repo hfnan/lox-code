@@ -1,4 +1,4 @@
-use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt, BlockStmt}};
+use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt, BlockStmt, IfStmt}};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -229,9 +229,30 @@ impl Parser {
             Some(token) if token.ttype == TokenType::LeftBrace => {
                 self.advance();
                 Ok(Stmt::Block(BlockStmt {statements: self.block()?}))
+            },
+            Some(token) if token.ttype == TokenType::If => {
+                self.advance();
+                self.if_statement()
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let then_branch = Box::new(self.statement()?);
+        let else_branch = match self.peek() {
+            Some(token) if token.ttype == TokenType::Else => {
+                self.advance();
+                Some(Box::new(self.statement()?))
+            },
+            _ => None 
+        };
+
+        Ok(Stmt::If(IfStmt{ condition, then_branch, else_branch}))
     }
 
     fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
@@ -249,15 +270,15 @@ impl Parser {
     }
 
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {
-        let value = self.expression()?;
+        let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after value.")?;
-        Ok(Stmt::Print(PrintStmt { expression: Box::new(value) }))
+        Ok(Stmt::Print(PrintStmt { expression }))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after expression.")?;
-        Ok(Stmt::Expression(ExpressionStmt { expression: Box::new(expression) }))
+        Ok(Stmt::Expression(ExpressionStmt { expression }))
     }
 
     fn declaration(&mut self) -> Result<Stmt, LoxError> {
