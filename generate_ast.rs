@@ -12,6 +12,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
     ])?;
 
     define_ast(output_dir, "Stmt", &[
+        "Block      > statements: Vec<Stmt>".to_owned(),
         "Expression > expression: Box<Expr>".to_owned(),
         "Print      > expression: Box<Expr>".to_owned(),
         "Var        > name: Token, initializer: Option<Expr>".to_owned(),
@@ -37,7 +38,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     for ttype in types {
         let (class_name, fields) = ttype.split_once('>').unwrap();
         let (class_name, fields) = (&format!("{}{}", class_name.trim(), base_name), fields.trim());
-        define_type(&mut file, base_name, class_name, fields)?;
+        define_type(&mut file, class_name, fields)?;
     }
 
     define_impl(&mut file, base_name, types, "Output")?;
@@ -98,7 +99,7 @@ fn define_enum(file: &mut fs::File, base_name: &str, types: &[String]) -> io::Re
     writeln!(file)
 }
 
-fn define_type(file: &mut fs::File, base_name: &str, class_name: &str, fields: &str) -> io::Result<()> {
+fn define_type(file: &mut fs::File, class_name: &str, fields: &str) -> io::Result<()> {
     writeln!(file, "pub struct {class_name} {{")?;
     for field in fields.split(',') {
         writeln!(file, "    pub {},", field.trim())?;

@@ -59,6 +59,11 @@ impl ExprVisitor for Interpreter {
 
 impl StmtVisitor for Interpreter {
     type Output = ();
+    
+    fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError> {
+        self.execute_block(&stmt.statements, Environment::from(self.environment.clone()))
+    }
+
     fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError> {
         self.evaluate(&stmt.expression)?;
         Ok(())
@@ -95,6 +100,19 @@ impl Interpreter {
 
     fn execute(&mut self, stmt: &Stmt) -> Result<(), LoxError> {
         stmt.accept(self)
+    }
+
+    fn execute_block(&mut self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
+        let previous = self.environment.clone();
+        self.environment = environment;
+    
+        let res: Result<Vec<_>, _> = statements.iter()
+            .map(|stmt| self.execute(stmt))
+            .collect();
+        
+        self.environment = previous;
+        
+        res.map(|_| ())
     }
 
     pub fn interpret(&mut self, stmts: Vec<Stmt>) {

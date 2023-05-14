@@ -1,4 +1,4 @@
-use crate::{error::LoxError, expr::{*, self}, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt}};
+use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::{Stmt, PrintStmt, ExpressionStmt, VarStmt, BlockStmt}};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -226,8 +226,26 @@ impl Parser {
                 self.advance();
                 self.print_statement()
             },
+            Some(token) if token.ttype == TokenType::LeftBrace => {
+                self.advance();
+                Ok(Stmt::Block(BlockStmt {statements: self.block()?}))
+            }
             _ => self.expression_statement(),
         }
+    }
+
+    fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
+        let mut statements = Vec::new();
+
+        while let Some(token) = self.peek() {
+            if token.ttype == TokenType::RightBrace {
+                break;
+            }
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(statements)
     }
 
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {

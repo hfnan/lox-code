@@ -1,5 +1,4 @@
 use crate::token::{Token, TokenType};
-use crate::object::Object;
 
 #[derive(Debug)]
 pub struct LoxError {
