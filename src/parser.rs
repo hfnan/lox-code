@@ -21,25 +21,45 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.comma()
+        self.assignment()
     }
 
-    fn comma(&mut self) -> Result<Expr, LoxError> {
-        let mut expr = self.equality()?;
+    fn assignment(&mut self) -> Result<Expr, LoxError> {
+        let expr = self.equality()?;
 
-        while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
-            let operator = self.peek().unwrap();
-            self.advance();
-            let right = self.equality()?;
-            expr = Expr::Binary(BinaryExpr {
-                left: Box::new(expr),
-                operator,
-                right: Box::new(right),
-            });
+        match self.peek() {
+            Some(token) if token.ttype == TokenType::Assign => {
+                let equals = token;
+                self.advance();
+                let value = self.assignment()?;
+
+                if let Expr::Variable(variable) = expr {
+                    let name = variable.name;
+                    return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }))
+                } 
+                LoxError::parse_error(equals, "Invalid Assignment Target.");
+            },
+            _ => ()
         }
-
         Ok(expr)
     }
+
+    // fn comma(&mut self) -> Result<Expr, LoxError> {
+    //     let mut expr = self.equality()?;
+
+    //     while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
+    //         let operator = self.peek().unwrap();
+    //         self.advance();
+    //         let right = self.equality()?;
+    //         expr = Expr::Binary(BinaryExpr {
+    //             left: Box::new(expr),
+    //             operator,
+    //             right: Box::new(right),
+    //         });
+    //     }
+
+    //     Ok(expr)
+    // }
 
     fn equality(&mut self) -> Result<Expr, LoxError> {
         let mut expr = self.comparison()?;

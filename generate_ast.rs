@@ -3,6 +3,7 @@ use std::{io::{self, Write}, fs};
 pub fn generate_ast(output_dir: &str) -> io::Result<()>{
 
     define_ast(output_dir, "Expr", &[
+        "Assign   > name: Token, value: Box<Expr>".to_owned(),
         "Binary   > left: Box<Expr>, operator: Token, right: Box<Expr>".to_owned(),
         "Grouping > expression: Box<Expr>".to_owned(),
         "Literal  > value: Option<Object>".to_owned(),

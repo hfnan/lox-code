@@ -60,10 +60,6 @@ fn run(source: String, interp: &mut Interpreter) -> Result<(), LoxError> {
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens()?;
 
-    // for token in tokens {
-    //     println!("{}", token);
-    // }
-    
     let mut parser = Parser::new(tokens.to_owned());
     let statements = match parser.parse() {
         Ok(expr) => expr,

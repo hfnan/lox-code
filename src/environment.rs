@@ -25,4 +25,13 @@ impl Environment {
             Err(LoxError::runtime_error(Some(&name), Some(&format!("Undifined variable '{}'.", name.lexeme))))
         }
     } 
+
+    pub fn assign(&mut self, name: Token, value: Object) -> Result<(), LoxError> {
+         if self.values.contains_key(&name.lexeme) {
+            self.values.insert(name.lexeme, value);
+            Ok(())
+         } else {
+            Err(LoxError::runtime_error(Some(&name), Some(&format!("Undefined variable '{}'", name.lexeme))))
+         }
+    }
 }

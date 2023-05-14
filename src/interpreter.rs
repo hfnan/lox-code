@@ -6,6 +6,13 @@ pub struct Interpreter {
 
 impl ExprVisitor for Interpreter {
     type Output = Object;
+
+    fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError> {
+        let value = self.evaluate(&expr.value)?;
+        self.environment.assign(expr.name.clone(), value.clone())?;
+        return Ok(value);
+    }
+
     fn visit_binary_expr(&mut self, expr: &BinaryExpr) -> Result<Self::Output, LoxError> {
         let left = self.evaluate(&expr.left)?;
         let right = self.evaluate(&expr.right)?;
