@@ -3,11 +3,16 @@ use crate::{error::LoxError, expr::{*, self}, token::*, object::Object, stmt::{S
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    had_error: bool,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
+        Self { tokens, current: 0, had_error: false }
+    }
+
+    pub fn success(&self) -> bool {
+        !self.had_error
     }
 
     fn peek(&self) -> Option<Token> {
@@ -37,6 +42,7 @@ impl Parser {
                     let name = variable.name;
                     return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }))
                 } 
+                self.had_error = true;
                 LoxError::parse_error(equals, "Invalid Assignment Target.");
             },
             _ => ()

@@ -61,11 +61,17 @@ fn run(source: String, interp: &mut Interpreter) -> Result<(), LoxError> {
     let tokens = scanner.scan_tokens()?;
 
     let mut parser = Parser::new(tokens.to_owned());
+    
+    
     let statements = match parser.parse() {
         Ok(expr) => expr,
         Err(_) => return Ok(()),
     };
-
+    
+    if !parser.success() {
+        return Ok(());
+    }
+    
     interp.interpret(statements);
 
     // let printer = AstPrinter {};

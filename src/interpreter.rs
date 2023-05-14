@@ -10,7 +10,7 @@ impl ExprVisitor for Interpreter {
     fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&expr.value)?;
         self.environment.assign(expr.name.clone(), value.clone())?;
-        return Ok(value);
+        Ok(value)
     }
 
     fn visit_binary_expr(&mut self, expr: &BinaryExpr) -> Result<Self::Output, LoxError> {
@@ -71,7 +71,7 @@ impl StmtVisitor for Interpreter {
     }
 
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError> {
-        let value = if !stmt.initializer.is_none() {
+        let value = if stmt.initializer.is_some() {
             self.evaluate(stmt.initializer.as_ref().unwrap())?
         } else {
             Object::Nil
