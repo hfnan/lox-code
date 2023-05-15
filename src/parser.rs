@@ -171,7 +171,45 @@ impl Parser {
             }));
         }
 
-        self.primary()
+        self.call()
+    }
+
+    fn call(&mut self) -> Result<Expr, LoxError> {
+        let mut expr = self.primary()?;
+
+        loop {
+            match self.peek() {
+                Some(token) if token.ttype == TokenType::LeftParen => {
+                    self.advance();
+                    expr = self.finish_call(expr)?;
+                },
+                _ => break,
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Result<Expr, LoxError> {
+        let mut arguments = Vec::new();
+
+        if matches!(self.peek(), Some(token) if token.ttype != TokenType::RightParen) {
+            arguments.push(self.expression()?);
+            while matches!(self.peek(), Some(token) if token.ttype == TokenType::Comma) {
+                self.advance();
+                if arguments.len() >= 255 {
+                    if let Some(token) = self.peek() {
+                        LoxError::parse_error(&token, "Can't have more than 255 arguments.");
+                        self.had_error = true;
+                    }
+                }
+                arguments.push(self.expression()?);
+            }
+        }
+
+        let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
+
+        Ok(Expr::Call(CallExpr { callee: Box::new(callee), paren, arguments }))
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {

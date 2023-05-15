@@ -7,6 +7,7 @@ mod parser;
 mod interpreter;
 mod stmt;
 mod environment;
+mod callable;
 
 use interpreter::Interpreter;
 use parser::Parser;

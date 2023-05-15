@@ -6,6 +6,7 @@ pub trait ExprVisitor {
     type Output;
     fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError>;
     fn visit_binary_expr(&mut self, expr: &BinaryExpr) -> Result<Self::Output, LoxError>;
+    fn visit_call_expr(&mut self, expr: &CallExpr) -> Result<Self::Output, LoxError>;
     fn visit_grouping_expr(&mut self, expr: &GroupingExpr) -> Result<Self::Output, LoxError>;
     fn visit_literal_expr(&mut self, expr: &LiteralExpr) -> Result<Self::Output, LoxError>;
     fn visit_logical_expr(&mut self, expr: &LogicalExpr) -> Result<Self::Output, LoxError>;
@@ -16,6 +17,7 @@ pub trait ExprVisitor {
 pub enum Expr {
     Assign(AssignExpr),
     Binary(BinaryExpr),
+    Call(CallExpr),
     Grouping(GroupingExpr),
     Literal(LiteralExpr),
     Logical(LogicalExpr),
@@ -32,6 +34,12 @@ pub struct BinaryExpr {
     pub left: Box<Expr>,
     pub operator: Token,
     pub right: Box<Expr>,
+}
+
+pub struct CallExpr {
+    pub callee: Box<Expr>,
+    pub paren: Token,
+    pub arguments: Vec<Expr>,
 }
 
 pub struct GroupingExpr {
@@ -62,6 +70,7 @@ impl Expr {
         match self {
             Expr::Assign(assignstmt) => assignstmt.accept(visitor),
             Expr::Binary(binarystmt) => binarystmt.accept(visitor),
+            Expr::Call(callstmt) => callstmt.accept(visitor),
             Expr::Grouping(groupingstmt) => groupingstmt.accept(visitor),
             Expr::Literal(literalstmt) => literalstmt.accept(visitor),
             Expr::Logical(logicalstmt) => logicalstmt.accept(visitor),
@@ -81,6 +90,13 @@ impl AssignExpr {
 impl BinaryExpr {
     pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_binary_expr(self)
+    }
+
+}
+
+impl CallExpr {
+    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_call_expr(self)
     }
 
 }

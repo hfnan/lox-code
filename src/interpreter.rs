@@ -9,6 +9,22 @@ pub struct Interpreter {
 impl ExprVisitor for Interpreter {
     type Output = Object;
 
+    fn visit_call_expr(&mut self, expr: &CallExpr) -> Result<Self::Output, LoxError> {
+        let callee = self.evaluate(&expr.callee)?;
+    
+        let mut arguments = Vec::new();
+
+        for argument in &expr.arguments {
+            arguments.push(self.evaluate(argument)?);
+        }
+
+        if let Object::Func(function) = callee {
+            function.call(self, &arguments)
+        } else {
+            Err(LoxError::runtime_error(&expr.paren, "Can only call functions and classes."))
+        }
+    }
+
     fn visit_logical_expr(&mut self, expr: &LogicalExpr) -> Result<Self::Output, LoxError> {
         let left = self.evaluate(&expr.left)?;
 

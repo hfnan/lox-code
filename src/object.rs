@@ -1,3 +1,4 @@
+use crate::callable::Callable;
 use crate::error::LoxError;
 
 use std::fmt;
@@ -8,8 +9,10 @@ pub enum Object {
     Num(f64),
     Str(String),
     Bool(bool),
+    Func(Callable),
     Nil,
 }
+
 
 impl Object {
     pub fn greater(&self, rhs: Self) -> Result<Self, LoxError> {
@@ -63,6 +66,7 @@ impl fmt::Display for Object {
             Self::Str(x) => write!(f, "{x}"),
             Self::Bool(x) => if *x {write!(f, "true")} else {write!(f, "false")},
             Self::Nil => write!(f, "nil"),
+            Self::Func(_) => Ok(())
         }
     }
 }
