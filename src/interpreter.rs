@@ -1,5 +1,4 @@
 use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, environment::Environment};
-use std::{env, primitive};
 use std::rc::Rc;
 use std::cell::RefCell;
 

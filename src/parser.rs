@@ -260,9 +260,61 @@ impl Parser {
             Some(token) if token.ttype == TokenType::While => {
                 self.advance();
                 self.while_statement()
+            },
+            Some(token) if token.ttype == TokenType::For => {
+                self.advance();
+                self.for_statement()       
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt, LoxError> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'for'.")?;
+
+        let initializer = match self.peek() {
+            Some(token) => {
+                self.advance();
+                match token.ttype {
+                    TokenType::SemiColon => None, 
+                    TokenType::Var => Some(self.var_declaration()?),
+                    _ => Some(self.expression_statement()?)
+                }
+            }
+            _ => None,
+        };
+
+        let condition = match self.peek() {
+            Some(token) if token.ttype != TokenType::SemiColon => {
+                self.expression()?
+            },
+            _ => Expr::Literal(LiteralExpr { value: Some(Object::Bool(true)) }),
+        };
+
+        self.consume(TokenType::SemiColon, "Expect ';' after loop condition.")?;
+
+        let increment = match self.peek() {
+            Some(token) if token.ttype != TokenType::RightParen => {
+                Some(self.expression()?)
+            },
+            _ => None,
+        };
+
+        self.consume(TokenType::RightParen, "Expect ')' after for clauses.")?;
+
+        let mut body = self.statement()?;
+
+        if let Some(increment) = increment {
+            body = Stmt::Block(BlockStmt { statements: vec![body, Stmt::Expression(ExpressionStmt { expression: increment }) ] });
+        }
+
+        body = Stmt::While(WhileStmt { condition, body: Box::new(body) });
+        
+        if let Some(initializer) = initializer {
+            body = Stmt::Block(BlockStmt { statements: vec![initializer, body] });
+        }
+
+        Ok(body)
     }
 
     fn while_statement(&mut self) -> Result<Stmt, LoxError> {
