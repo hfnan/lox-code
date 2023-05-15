@@ -13,6 +13,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
     ])?;
 
     define_ast(output_dir, "Stmt", &[
+        "Break      > line: usize".to_owned(),
         "Block      > statements: Vec<Stmt>".to_owned(),
         "Expression > expression: Expr".to_owned(),
         "If         > condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>".to_owned(),

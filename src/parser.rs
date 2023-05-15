@@ -245,6 +245,11 @@ impl Parser {
 
     fn statement(&mut self) -> Result<Stmt, LoxError> {
         match self.peek() {
+            Some(token) if token.ttype == TokenType::Break => {
+                self.advance();
+                self.consume(TokenType::SemiColon, "Expect ';' after break.")?;
+                Ok(Stmt::Break(BreakStmt { line: token.line})) 
+            }
             Some(token) if token.ttype == TokenType::Print => {
                 self.advance();
                 self.print_statement()

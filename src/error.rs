@@ -6,6 +6,7 @@ pub enum LoxError {
     ParseError,
     RuntimeError,
     ObjectError(String),
+    Break(usize),
 }
 
 
