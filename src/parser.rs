@@ -60,7 +60,7 @@ impl Parser {
                     return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }))
                 } 
                 self.had_error = true;
-                LoxError::parse_error(equals, "Invalid Assignment Target.");
+                LoxError::parse_error(&equals, "Invalid Assignment Target.");
             },
             _ => ()
         }
@@ -200,11 +200,11 @@ impl Parser {
                         }))
                     }
                     _ => Err(LoxError::parse_error(
-                        token,
+                        &token,
                         "Expect expression.")),
                 }
             }
-            _ => Err(LoxError::error(0, "Failed primary parser.")),
+            _ => Err(LoxError::scan_error(0, "Failed primary parser.")),
         }
     }
 
@@ -215,7 +215,7 @@ impl Parser {
                 Ok(token)
             }
             _ => Err(LoxError::parse_error(
-                self.peek().unwrap(),
+                &self.peek().unwrap(),
                 message,
             )),
         }

@@ -26,7 +26,6 @@ impl Scanner {
         while !self.is_at_end() {
             self.start = self.current;
             if let Err(e) = self.scan_token() {
-                e.report("scanner.rs/scan_tokens()");
                 had_error = Some(e);
             }
         }
@@ -84,7 +83,7 @@ impl Scanner {
             'a'..='z' | 'A'..='Z' | '_' => self.indentifier(),
             ' ' | '\r' | '\t' => (),
             '\n' => self.line += 1,
-            ch => return Err(LoxError::error(self.line, &format!("Unexpected Charactor: '{}'", ch))),
+            ch => return Err(LoxError::scan_error(self.line, &format!("Unexpected Charactor: '{}'", ch))),
         }
         Ok(())
     }
@@ -99,7 +98,7 @@ impl Scanner {
                 _ => {}, 
             }
         }
-        Err(LoxError::error(self.line, "Unterminate block comment."))
+        Err(LoxError::scan_error(self.line, "Unterminate block comment."))
     } 
 
     fn indentifier(&mut self) {
@@ -135,7 +134,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(LoxError::error(self.line, "Unterminated String."));
+            return Err(LoxError::scan_error(self.line, "Unterminated String."));
         }
 
         self.advance(); // advance after check

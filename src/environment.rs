@@ -32,7 +32,7 @@ impl Environment {
         } else if let Some(enclosing) = &self.enclosing {
             enclosing.borrow().get(name)
         } else {
-            Err(LoxError::runtime_error(Some(&name), Some(&format!("Undifined variable '{}'.", name.lexeme))))
+            Err(LoxError::runtime_error(&name, &format!("Undifined variable '{}'.", name.lexeme)))
         }
     } 
 
@@ -43,7 +43,7 @@ impl Environment {
         } else if let Some(enclosing) = &self.enclosing {
             enclosing.borrow_mut().assign(name, value)
         } else {
-            Err(LoxError::runtime_error(Some(&name), Some(&format!("Undefined variable '{}'", name.lexeme))))
+            Err(LoxError::runtime_error(&name, &format!("Undefined variable '{}'", name.lexeme)))
         }
     }
 }

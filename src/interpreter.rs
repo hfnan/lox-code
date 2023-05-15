@@ -29,7 +29,7 @@ impl ExprVisitor for Interpreter {
         let left = self.evaluate(&expr.left)?;
         let right = self.evaluate(&expr.right)?;
 
-        match expr.operator.ttype {
+        let result = match expr.operator.ttype {
             TokenType::Plus => left + right,
             TokenType::Minus => left - right,
             TokenType::Star => left * right,
@@ -41,8 +41,13 @@ impl ExprVisitor for Interpreter {
             TokenType::BangEqual => left.bangequal(right),
             TokenType::Equal => left.equal(right),
             TokenType::Comma => Ok(right),
-            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some(&format!("Unexpected operator '{}' in binary expression.", expr.operator.lexeme))))
+            _ => Err(LoxError::runtime_error(&expr.operator, &format!("Unexpected operator '{}' in binary expression.", expr.operator.lexeme)))
+        };
+        
+        if let Err(LoxError::ObjectError(message)) = &result {
+            LoxError::report(expr.operator.line, "", message);
         }
+        result
     }   
 
     fn visit_grouping_expr(&mut self, expr: &GroupingExpr) -> Result<Self::Output, LoxError> {
@@ -50,7 +55,7 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_literal_expr(&mut self, expr: &LiteralExpr) -> Result<Self::Output, LoxError> {
-        expr.value.clone().ok_or_else(|| LoxError::runtime_error(None, Some("There is no valid literal!")))
+        expr.value.clone().ok_or_else(|| LoxError::object_error("There is no valid literal!"))
     }
     
 
@@ -61,7 +66,7 @@ impl ExprVisitor for Interpreter {
         match expr.operator.ttype {
             TokenType::Minus => - right,
             TokenType::Bang => ! right,
-            _ => Err(LoxError::runtime_error(Some(&expr.operator), Some("cannot use operator like unary.")))
+            _ => Err(LoxError::runtime_error(&expr.operator, "Cannot use operator like unary."))
         }
     }
 
@@ -148,9 +153,7 @@ impl Interpreter {
 
     pub fn interpret(&mut self, stmts: Vec<Stmt>) {
         for stmt in stmts {
-            if let Err(e) = self.execute(&stmt) {
-                e.report("");
-            }
+            if let Err(_) = self.execute(&stmt) {}
         }
     }
 }

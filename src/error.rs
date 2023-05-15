@@ -1,46 +1,39 @@
 use crate::token::{Token, TokenType};
 
 #[derive(Debug)]
-pub struct LoxError {
-    token: Option<Token>,
-    line: usize,
-    message: String,
+pub enum LoxError {
+    ScanError,
+    ParseError,
+    RuntimeError,
+    ObjectError(String),
 }
 
+
 impl LoxError {
-    pub fn error(line: usize, message: &str) -> LoxError {
-        let err = LoxError { token: None, line, message: message.to_owned() };
-        err.report("");
-        err
+    pub fn report(line: usize, locate: &str, message: &str) {
+        eprintln!("[line {}] Error {}: {}", line, locate, message);
     }
 
-    pub fn report(&self, loc: &str) {
-        eprintln!("[line {}] Error {}: {}", self.line, loc, self.message);
+    pub fn scan_error(line: usize, message: &str) -> Self {
+        Self::report(line, "", message);
+        Self::ScanError
     }
 
-    pub fn parse_error(token: Token, message: &str) -> LoxError {
-        let err = LoxError {token: Some(token.clone()), line: token.line, message: message.to_owned()};
+    pub fn parse_error(token: &Token, message: &str) -> Self {
         match token.ttype {
-            TokenType::Eof => err.report("at end"),
-            _ => err.report(&format!("at '{}'", &token.lexeme)),
+            TokenType::Eof => Self::report(token.line, "at end", message),
+            _ => Self::report(token.line, &format!("at '{}'", &token.lexeme), message),
         }
-        err
+        LoxError::ParseError
     }
 
-    pub fn runtime_error(token: Option<&Token>, message: Option<&str>) -> LoxError {
-        let mut err = LoxError::basic_runtime_error();
-        if let Some(message) = message {
-            err.message = message.to_owned();
-        }
-
-        if let Some(token) = token {
-            err.token = Some(token.clone());
-            err.line = token.line;
-        }
-        err
+    pub fn object_error(message: &str) -> Self {
+        Self::ObjectError(message.to_owned())
     }
 
-    fn basic_runtime_error() -> LoxError {
-        LoxError { token: None, line: 0, message: "there is something wrong when interpreting.".to_owned() }
+    pub fn runtime_error(token: &Token, message: &str) -> Self {
+        Self::report(token.line, "", message);
+        Self::RuntimeError
     }
+
 }

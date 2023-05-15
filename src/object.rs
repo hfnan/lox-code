@@ -15,28 +15,28 @@ impl Object {
     pub fn greater(&self, rhs: Self) -> Result<Self, LoxError> {
         match (self, &rhs) {
             (Object::Num(_), Object::Num(_)) => Ok(Object::Bool(self > &rhs)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '>' need two Num operands."))
         }
     }
 
     pub fn greaterequal(&self, rhs: Self) -> Result<Self, LoxError> {
         match (self, &rhs) {
             (Object::Num(_), Object::Num(_)) => Ok(Object::Bool(self >= &rhs)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '>=' need two Num operands."))
         }
     }
 
     pub fn less(&self, rhs: Self) -> Result<Self, LoxError> {
         match (self, &rhs) {
             (Object::Num(_), Object::Num(_)) => Ok(Object::Bool(self < &rhs)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '<' need two Num operands."))
         }
     }
 
     pub fn lessequal(&self, rhs: Self) -> Result<Self, LoxError> {
         match (self, &rhs) {
             (Object::Num(_), Object::Num(_)) => Ok(Object::Bool(self >= &rhs)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '<=' need two Num operands."))
         }
     }
 
@@ -51,7 +51,7 @@ impl Object {
     pub fn bangequal(&self, rhs: Self) -> Result<Self, LoxError> {
         match self.equal(rhs) {
             Ok(obj) => !obj,
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => unreachable!()
         }
     }
 }
@@ -73,7 +73,7 @@ impl Neg for Object {
     fn neg(self) -> Self::Output {
         match self {
             Object::Num(val) => Ok(Object::Num(-val)),
-            _ => Err(LoxError::runtime_error(None, None)),
+            _ => Err(LoxError::object_error("Prefix operator '-' need Num operand."))
         }
     }
 }
@@ -100,7 +100,7 @@ impl Add for Object {
             (Object::Str(left), Object::Str(right)) => Ok(Object::Str(format!("{left}{right}"))),
             (Object::Num(left), Object::Str(right)) => Ok(Object::Str(format!("{left}{right}"))),
             (Object::Str(left), Object::Num(right)) => Ok(Object::Str(format!("{left}{right}"))),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Unexpected Type of operands for operator '+'."))
         } 
     }
 }
@@ -111,7 +111,7 @@ impl Sub for Object {
     fn sub(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Num(left), Object::Num(right)) => Ok(Object::Num(left - right)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '-' need two Num operands."))
         } 
     }
 }
@@ -122,7 +122,7 @@ impl Mul for Object {
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
              (Object::Num(left), Object::Num(right)) => Ok(Object::Num(left * right)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '*' need two Num operands."))
         }
     }
 }
@@ -133,7 +133,7 @@ impl Div for Object {
     fn div(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
              (Object::Num(left), Object::Num(right)) => Ok(Object::Num(left / right)),
-            _ => Err(LoxError::runtime_error(None, None))
+            _ => Err(LoxError::object_error("Operator '/' need two Num operands."))
         }
     }
 }
