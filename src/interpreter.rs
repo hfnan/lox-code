@@ -1,8 +1,9 @@
-use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, environment::Environment};
+use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, callable::*, environment::Environment};
 use std::rc::Rc;
 use std::cell::RefCell;
 
 pub struct Interpreter {
+    globals: Rc<RefCell<Environment>>,
     environment: Rc<RefCell<Environment>>,
 }
 
@@ -19,7 +20,18 @@ impl ExprVisitor for Interpreter {
         }
 
         if let Object::Func(function) = callee {
-            function.call(self, &arguments)
+            if arguments.len() != function.arity() {
+                Err(LoxError::runtime_error(&expr.paren,
+                    &format!("Expected {} arguments but got {}.",
+                    function.arity(), arguments.len())))
+            } else {
+                function.call(self, &arguments).map_or_else(|e| {
+                    if let LoxError::ObjectError(message) = &e {
+                        LoxError::report(expr.paren.line, "", &message);
+                    }
+                    Err(e)
+                }, |obj| Ok(obj))
+            }
         } else {
             Err(LoxError::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
@@ -148,8 +160,12 @@ impl StmtVisitor for Interpreter {
 
 impl Interpreter {
     pub fn new() -> Self {
+        let globals = Rc::new(RefCell::new(Environment::new()));
+        globals.borrow_mut().define("clock".to_owned(), Object::Func(Rc::new(NativeClock)));
+
         Self {
-            environment: Rc::new(RefCell::new(Environment::new()))
+            globals: Rc::clone(&globals), 
+            environment: Rc::clone(&globals)
         }
     }
 
