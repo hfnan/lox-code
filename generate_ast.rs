@@ -17,6 +17,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Break      > line: usize".to_owned(),
         "Block      > statements: Vec<Stmt>".to_owned(),
         "Expression > expression: Expr".to_owned(),
+        "Function   > name: Token, parameters: Vec<Token>, body: Vec<Stmt>".to_owned(),
         "If         > condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>".to_owned(),
         "Print      > expression: Expr".to_owned(),
         "Var        > name: Token, initializer: Option<Expr>".to_owned(),

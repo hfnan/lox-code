@@ -7,6 +7,7 @@ pub trait StmtVisitor {
     fn visit_break_stmt(&mut self, stmt: &BreakStmt) -> Result<Self::Output, LoxError>;
     fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError>;
     fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError>;
+    fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError>;
     fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError>;
     fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<Self::Output, LoxError>;
     fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError>;
@@ -17,6 +18,7 @@ pub enum Stmt {
     Break(BreakStmt),
     Block(BlockStmt),
     Expression(ExpressionStmt),
+    Function(FunctionStmt),
     If(IfStmt),
     Print(PrintStmt),
     Var(VarStmt),
@@ -33,6 +35,12 @@ pub struct BlockStmt {
 
 pub struct ExpressionStmt {
     pub expression: Expr,
+}
+
+pub struct FunctionStmt {
+    pub name: Token,
+    pub parameters: Vec<Token>,
+    pub body: Vec<Stmt>,
 }
 
 pub struct IfStmt {
@@ -61,6 +69,7 @@ impl Stmt {
             Stmt::Break(breakstmt) => breakstmt.accept(visitor),
             Stmt::Block(blockstmt) => blockstmt.accept(visitor),
             Stmt::Expression(expressionstmt) => expressionstmt.accept(visitor),
+            Stmt::Function(functionstmt) => functionstmt.accept(visitor),
             Stmt::If(ifstmt) => ifstmt.accept(visitor),
             Stmt::Print(printstmt) => printstmt.accept(visitor),
             Stmt::Var(varstmt) => varstmt.accept(visitor),
@@ -86,6 +95,13 @@ impl BlockStmt {
 impl ExpressionStmt {
     pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
         visitor.visit_expression_stmt(self)
+    }
+
+}
+
+impl FunctionStmt {
+    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_function_stmt(self)
     }
 
 }

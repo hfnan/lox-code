@@ -418,6 +418,10 @@ impl Parser {
             Some(token) if token.ttype == TokenType::Var => {
                 self.advance();
                 self.var_declaration()
+            },
+            Some(token) if token.ttype == TokenType::Fun => {
+                self.advance();
+                self.function("function")
             }
             _ => self.statement()
         };
@@ -426,6 +430,31 @@ impl Parser {
             self.synchronize();
         }
         res
+    }
+
+    fn function(&mut self, kind: &str) -> Result<Stmt, LoxError> {
+        let name = self.consume(TokenType::Identifier, &format!("Expect {kind} name."))?;
+        self.consume(TokenType::LeftParen, &format!("Expect '(' after {kind} name."))?;
+        let mut parameters = Vec::new();
+        
+        if matches!(self.peek(), Some(token) if token.ttype != TokenType::RightParen) {
+            parameters.push(self.consume(TokenType::Identifier, "Expect parameter name.")?);
+            while matches!(self.peek(), Some(token) if token.ttype == TokenType::Comma) {
+                self.advance();
+                if parameters.len() >= 255 {
+                    if let Some(token) = self.peek() {
+                        LoxError::parse_error(&token, "Can't have more than 255 arguments.");
+                        self.had_error = true;
+                    }
+                }
+                parameters.push(self.consume(TokenType::Identifier, "Expect parameter name.")?);
+            }
+        }
+
+        self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
+        self.consume(TokenType::LeftBrace, &format!("Expect '{{' before {kind} body."))?;
+        let body = self.block()?;
+        Ok(Stmt::Function(FunctionStmt { name, parameters, body }))
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, LoxError> {

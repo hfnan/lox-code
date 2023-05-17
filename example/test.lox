@@ -1,5 +1,4 @@
 var a = 1;
-{
-   var a = a + 2;
-   print a;
-}
+print a * "str";
+print clock();
+print clock;

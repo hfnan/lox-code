@@ -106,6 +106,10 @@ impl ExprVisitor for Interpreter {
 impl StmtVisitor for Interpreter {
     type Output = ();
 
+    fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError> {
+        unimplemented!()
+    }
+
     fn visit_break_stmt(&mut self, stmt: &BreakStmt) -> Result<Self::Output, LoxError> {
         Err(LoxError::Break(stmt.line)) 
     }
@@ -193,9 +197,13 @@ impl Interpreter {
 
     pub fn interpret(&mut self, stmts: Vec<Stmt>) {
         for stmt in stmts {
-            if let Err(LoxError::Break(line)) = self.execute(&stmt) {
-                LoxError::report(line, "", "'break' outside loop.");
-                break;
+            match self.execute(&stmt) {
+                Err(LoxError::Break(line)) => {
+                    LoxError::report(line, "", "'break' outside loop.");
+                    break;
+                },
+                Err(_) => break,
+                _ => {},
             }
         }
     }
