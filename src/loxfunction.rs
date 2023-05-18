@@ -1,15 +1,16 @@
-use std::{rc::Rc, fmt::Display};
+use std::{rc::Rc, fmt::Display, cell::RefCell};
 
 use crate::{callable::*, stmt::*, object::*, error::*, interpreter::*, environment::*};
 
 
 pub struct LoxFunction {
+    closure: Rc<RefCell<Environment>>,
     declaration: FunctionStmt
 }
 
 impl LoxCallable for LoxFunction {
     fn call(&self, interpreter: &mut Interpreter, arguments: &[Object]) -> Result<Object, LoxError> {
-        let mut environment = Environment::from(Rc::clone(&interpreter.globals));
+        let mut environment = Environment::from(Rc::clone(&self.closure));
         for (param, arg) in self.declaration.parameters.iter().zip(arguments.iter()) {
             environment.define(&param.lexeme, arg);
         }
@@ -37,8 +38,8 @@ impl Display for LoxFunction {
 }
 
 impl LoxFunction {
-    pub fn new(declaration: FunctionStmt) -> Self {
-        Self { declaration }
+    pub fn new(declaration: FunctionStmt, closure: Rc<RefCell<Environment>>) -> Self {
+        Self { declaration, closure }
     }
 }
 
