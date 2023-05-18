@@ -1,4 +1,4 @@
-use crate::token::{Token, TokenType};
+use crate::{token::{Token, TokenType}, object::Object};
 
 #[derive(Debug)]
 pub enum LoxError {
@@ -7,6 +7,7 @@ pub enum LoxError {
     RuntimeError,
     ObjectError(String),
     Break(usize),
+    Return(Object, usize),
 }
 
 

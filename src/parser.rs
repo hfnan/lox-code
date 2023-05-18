@@ -307,9 +307,22 @@ impl Parser {
             Some(token) if token.ttype == TokenType::For => {
                 self.advance();
                 self.for_statement()       
+            },
+            Some(token) if token.ttype == TokenType::Return => {
+                self.advance();
+                self.return_statement(token)
             }
             _ => self.expression_statement(),
         }
+    }
+
+    fn return_statement(&mut self, keyword: Token) -> Result<Stmt, LoxError> {
+        let value = match self.peek() {
+            Some(token) if token.ttype != TokenType::SemiColon => self.expression()?,
+            _ => Expr::Literal(LiteralExpr { value: Some(Object::Nil) })
+        };
+        self.consume(TokenType::SemiColon, "Expect ';' after return value.")?;
+        Ok(Stmt::Return(ReturnStmt { keyword, value }))
     }
 
     fn for_statement(&mut self) -> Result<Stmt, LoxError> {

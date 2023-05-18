@@ -107,6 +107,11 @@ impl ExprVisitor for Interpreter {
 impl StmtVisitor for Interpreter {
     type Output = ();
 
+    fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<Self::Output, LoxError> {
+        let value = self.evaluate(&stmt.value)?;
+        Err(LoxError::Return(value, stmt.keyword.line))
+    }
+
     fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError> {
         let function = LoxFunction::new(stmt.clone());
         self.environment.borrow_mut().define(&stmt.name.lexeme, &Object::Func(Rc::new(function)));
@@ -205,6 +210,10 @@ impl Interpreter {
                     LoxError::report(line, "", "'break' outside loop.");
                     break;
                 },
+                Err(LoxError::Return(_, line)) => {
+                    LoxError::report(line, "", "'return' outside a funcion.");
+                    break;
+                } 
                 Err(_) => break,
                 _ => {},
             }

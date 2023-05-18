@@ -20,6 +20,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Function   > name: Token, parameters: Rc<Vec<Token>>, body: Rc<Vec<Stmt>>".to_owned(),
         "If         > condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>".to_owned(),
         "Print      > expression: Expr".to_owned(),
+        "Return     > keyword: Token, value: Expr".to_owned(),
         "Var        > name: Token, initializer: Option<Expr>".to_owned(),
         "While      > condition: Expr, body: Box<Stmt>".to_owned(),
     ])?;

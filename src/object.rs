@@ -70,7 +70,7 @@ impl Object {
 
     pub fn lessequal(&self, rhs: Self) -> Result<Self, LoxError> {
         match (self, &rhs) {
-            (Object::Num(a), Object::Num(b)) => Ok(Object::Bool(a >= b)),
+            (Object::Num(a), Object::Num(b)) => Ok(Object::Bool(a <= b)),
             _ => Err(LoxError::object_error("Operator '<=' need two Num operands."))
         }
     }
