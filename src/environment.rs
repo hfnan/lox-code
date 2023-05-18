@@ -22,8 +22,8 @@ impl Environment {
         Self { values: HashMap::new(), enclosing: Some(enclosing)}
     }
 
-    pub fn define(&mut self, name: String, value: Object) {
-        self.values.insert(name, value);
+    pub fn define(&mut self, name: &str, value: &Object) {
+        self.values.insert(name.to_owned(), value.clone());
     }
 
     pub fn get(&self, name: Token) -> Result<Object, LoxError> {

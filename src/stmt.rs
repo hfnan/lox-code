@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::token::*;
 use crate::expr::*;
+use std::rc::Rc;
 
 pub trait StmtVisitor {
     type Output;
@@ -39,8 +40,8 @@ pub struct ExpressionStmt {
 
 pub struct FunctionStmt {
     pub name: Token,
-    pub parameters: Vec<Token>,
-    pub body: Vec<Stmt>,
+    pub parameters: Rc<Vec<Token>>,
+    pub body: Rc<Vec<Stmt>>,
 }
 
 pub struct IfStmt {

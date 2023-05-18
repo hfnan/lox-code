@@ -1,5 +1,6 @@
 use crate::{error::LoxError, expr::*, token::*, object::Object, stmt::*};
 
+use std::rc::Rc;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
@@ -26,25 +27,25 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, LoxError> {
-        self.comma()
+        self.assignment()
     }
 
-    fn comma(&mut self) -> Result<Expr, LoxError> {
-        let mut expr = self.assignment()?;
+    // fn comma(&mut self) -> Result<Expr, LoxError> {
+    //     let mut expr = self.assignment()?;
 
-        while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
-            let operator = self.peek().unwrap();
-            self.advance();
-            let right = self.assignment()?;
-            expr = Expr::Binary(BinaryExpr {
-                left: Box::new(expr),
-                operator,
-                right: Box::new(right),
-            });
-        }
+    //     while matches!(self.peek(), Some(token) if matches!(token.ttype, TokenType::Comma)) {
+    //         let operator = self.peek().unwrap();
+    //         self.advance();
+    //         let right = self.assignment()?;
+    //         expr = Expr::Binary(BinaryExpr {
+    //             left: Box::new(expr),
+    //             operator,
+    //             right: Box::new(right),
+    //         });
+    //     }
 
-        Ok(expr)
-    }
+    //     Ok(expr)
+    // }
 
     fn assignment(&mut self) -> Result<Expr, LoxError> {
         let expr = self.or()?;
@@ -208,7 +209,6 @@ impl Parser {
         }
 
         let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
-
         Ok(Expr::Call(CallExpr { callee: Box::new(callee), paren, arguments }))
     }
 
@@ -454,7 +454,7 @@ impl Parser {
         self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
         self.consume(TokenType::LeftBrace, &format!("Expect '{{' before {kind} body."))?;
         let body = self.block()?;
-        Ok(Stmt::Function(FunctionStmt { name, parameters, body }))
+        Ok(Stmt::Function(FunctionStmt { name, parameters: Rc::new(parameters), body: Rc::new(body) }))
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, LoxError> {

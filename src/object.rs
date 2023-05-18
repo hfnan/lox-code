@@ -22,7 +22,7 @@ impl fmt::Debug for Object{
             Self::Str(x) => write!(f, "{x}"),
             Self::Bool(x) => if *x {write!(f, "true")} else {write!(f, "false")},
             Self::Nil => write!(f, "nil"),
-            Self::Func(x) => write!(f, "{}", x.display())
+            Self::Func(x) => write!(f, "{}", x)
         }
     }
 }
@@ -98,7 +98,7 @@ impl fmt::Display for Object {
             Self::Str(x) => write!(f, "{x}"),
             Self::Bool(x) => if *x {write!(f, "true")} else {write!(f, "false")},
             Self::Nil => write!(f, "nil"),
-            Self::Func(x) => write!(f, "{}", x.display())
+            Self::Func(x) => write!(f, "{}", x)
         }
     }
 }

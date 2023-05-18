@@ -17,7 +17,7 @@ pub fn generate_ast(output_dir: &str) -> io::Result<()>{
         "Break      > line: usize".to_owned(),
         "Block      > statements: Vec<Stmt>".to_owned(),
         "Expression > expression: Expr".to_owned(),
-        "Function   > name: Token, parameters: Vec<Token>, body: Vec<Stmt>".to_owned(),
+        "Function   > name: Token, parameters: Rc<Vec<Token>>, body: Rc<Vec<Stmt>>".to_owned(),
         "If         > condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>".to_owned(),
         "Print      > expression: Expr".to_owned(),
         "Var        > name: Token, initializer: Option<Expr>".to_owned(),
@@ -37,6 +37,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     }
     if let "Stmt" = base_name {
         writeln!(file, "use crate::expr::*;")?;
+        writeln!(file, "use std::rc::Rc;")?;
     }  
     writeln!(file)?;
     

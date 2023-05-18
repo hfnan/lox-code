@@ -8,6 +8,7 @@ mod interpreter;
 mod stmt;
 mod environment;
 mod callable;
+mod loxfunction;
 
 use interpreter::Interpreter;
 use parser::Parser;

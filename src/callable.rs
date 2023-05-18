@@ -1,12 +1,11 @@
-use std::time::SystemTime;
+use std::{time::SystemTime, fmt::Display};
 
 use crate::{interpreter::Interpreter, object::Object, error::LoxError};
 
-pub trait LoxCallable {
+pub trait LoxCallable: Display {
     fn arity(&self) -> usize;
     fn name(&self) -> &str;
     fn call(&self, interpreter: &mut Interpreter, arguments: &[Object]) -> Result<Object, LoxError>; 
-    fn display(&self) -> &str;
 }
 
 // For native clock function
@@ -26,8 +25,10 @@ impl LoxCallable for NativeClock {
             Err(_) => Err(LoxError::object_error("SystemTime before UNIX EPOCH!"))
         }
     }
+}
 
-    fn display(&self) -> &str {
-        "<native fn>"
+impl Display for NativeClock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<native fn>")
     }
 }

@@ -1,9 +1,10 @@
+use crate::loxfunction::LoxFunction;
 use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, callable::*, environment::Environment};
 use std::rc::Rc;
 use std::cell::RefCell;
 
 pub struct Interpreter {
-    globals: Rc<RefCell<Environment>>,
+    pub globals: Rc<RefCell<Environment>>,
     environment: Rc<RefCell<Environment>>,
 }
 
@@ -107,7 +108,9 @@ impl StmtVisitor for Interpreter {
     type Output = ();
 
     fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError> {
-        unimplemented!()
+        let function = LoxFunction::new(stmt.clone());
+        self.environment.borrow_mut().define(&stmt.name.lexeme, &Object::Func(Rc::new(function)));
+        Ok(())
     }
 
     fn visit_break_stmt(&mut self, stmt: &BreakStmt) -> Result<Self::Output, LoxError> {
@@ -157,7 +160,7 @@ impl StmtVisitor for Interpreter {
             Object::Nil
         };
         
-        self.environment.borrow_mut().define(stmt.name.lexeme.clone(), value);
+        self.environment.borrow_mut().define(&stmt.name.lexeme, &value);
         Ok(())
     }
 }
@@ -165,7 +168,7 @@ impl StmtVisitor for Interpreter {
 impl Interpreter {
     pub fn new() -> Self {
         let globals = Rc::new(RefCell::new(Environment::new()));
-        globals.borrow_mut().define("clock".to_owned(), Object::Func(Rc::new(NativeClock)));
+        globals.borrow_mut().define("clock", &Object::Func(Rc::new(NativeClock)));
 
         Self {
             globals: Rc::clone(&globals), 
@@ -185,7 +188,7 @@ impl Interpreter {
         stmt.accept(self) 
     }
 
-    fn execute_block(&mut self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
+    pub fn execute_block(&mut self, statements: &[Stmt], environment: Environment) -> Result<(), LoxError> {
         let previous = Rc::clone(&self.environment);
         self.environment = Rc::new(RefCell::new(environment));
 
