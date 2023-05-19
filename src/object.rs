@@ -40,10 +40,6 @@ impl PartialEq for Object {
             _ => false,
         }
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
 }
 
 impl Object {

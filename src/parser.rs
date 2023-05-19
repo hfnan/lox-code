@@ -57,8 +57,8 @@ impl Parser {
                 let value = self.assignment()?;
 
                 if let Expr::Variable(variable) = expr {
-                    let name = variable.name;
-                    return Ok(Expr::Assign(AssignExpr { name, value: Box::new(value) }))
+                    let name = variable.name.clone();
+                    return Ok(Expr::Assign(Rc::new(AssignExpr { name, value: Box::new(value) })))
                 } 
                 self.had_error = true;
                 LoxError::parse_error(&equals, "Invalid Assignment Target.");
@@ -74,7 +74,7 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = Box::new(self.and()?);
-            expr = Expr::Logical(LogicalExpr { left: Box::new(expr), operator, right })
+            expr = Expr::Logical(Rc::new(LogicalExpr { left: Box::new(expr), operator, right }))
         }
         Ok(expr)
     }
@@ -85,7 +85,7 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = Box::new(self.and()?);
-            expr = Expr::Logical(LogicalExpr { left: Box::new(expr), operator, right })
+            expr = Expr::Logical(Rc::new(LogicalExpr { left: Box::new(expr), operator, right }))
         }
      
         Ok(expr)
@@ -99,11 +99,11 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = self.comparison()?;
-            expr = Expr::Binary(BinaryExpr {
+            expr = Expr::Binary(Rc::new(BinaryExpr {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
-            });
+            }));
         }
 
         Ok(expr)
@@ -117,11 +117,11 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = self.term()?;
-            expr = Expr::Binary(BinaryExpr {
+            expr = Expr::Binary(Rc::new(BinaryExpr {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
-            });
+            }));
         }
 
         Ok(expr)
@@ -134,11 +134,11 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = self.factor()?;
-            expr = Expr::Binary(BinaryExpr {
+            expr = Expr::Binary(Rc::new(BinaryExpr {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
-            });
+            }));
         }
 
         Ok(expr)
@@ -151,11 +151,11 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = self.unary()?;
-            expr = Expr::Binary(BinaryExpr {
+            expr = Expr::Binary(Rc::new(BinaryExpr {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
-            });
+            }));
         }
 
         Ok(expr)
@@ -166,10 +166,10 @@ impl Parser {
             let operator = self.peek().unwrap();
             self.advance();
             let right = self.unary()?;
-            return Ok(Expr::Unary(UnaryExpr {
+            return Ok(Expr::Unary(Rc::new(UnaryExpr {
                 operator,
                 right: Box::new(right),
-            }));
+            })));
         }
 
         self.call()
@@ -209,7 +209,7 @@ impl Parser {
         }
 
         let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments.")?;
-        Ok(Expr::Call(CallExpr { callee: Box::new(callee), paren, arguments }))
+        Ok(Expr::Call(Rc::new(CallExpr { callee: Box::new(callee), paren, arguments })))
     }
 
     fn primary(&mut self) -> Result<Expr, LoxError> {
@@ -217,25 +217,25 @@ impl Parser {
             Some(token) => {
                 self.advance();
                 match token.ttype {
-                    TokenType::False => Ok(Expr::Literal(LiteralExpr {
+                    TokenType::False => Ok(Expr::Literal(Rc::new(LiteralExpr {
                         value: Some(Object::Bool(false)),
-                    })),
-                    TokenType::True => Ok(Expr::Literal(LiteralExpr {
+                    }))),
+                    TokenType::True => Ok(Expr::Literal(Rc::new(LiteralExpr {
                         value: Some(Object::Bool(true)),
-                    })),
-                    TokenType::Nil => Ok(Expr::Literal(LiteralExpr {
+                    }))),
+                    TokenType::Nil => Ok(Expr::Literal(Rc::new(LiteralExpr {
                         value: Some(Object::Nil),
-                    })),
-                    TokenType::Number | TokenType::String => Ok(Expr::Literal(LiteralExpr {
+                    }))),
+                    TokenType::Number | TokenType::String => Ok(Expr::Literal(Rc::new(LiteralExpr {
                         value: token.literal,
-                    })),
-                    TokenType::Identifier => Ok(Expr::Variable(VariableExpr { name: token })),
+                    }))),
+                    TokenType::Identifier => Ok(Expr::Variable(Rc::new(VariableExpr { name: token }))),
                     TokenType::LeftParen => {
                         let expr = self.expression()?;
                         self.consume(TokenType::RightParen, "Expect ')' after Expression")?;
-                        Ok(Expr::Grouping(GroupingExpr {
+                        Ok(Expr::Grouping(Rc::new(GroupingExpr {
                             expression: Box::new(expr),
-                        }))
+                        })))
                     }
                     _ => Err(LoxError::parse_error(
                         &token,
@@ -286,7 +286,7 @@ impl Parser {
             Some(token) if token.ttype == TokenType::Break => {
                 self.advance();
                 self.consume(TokenType::SemiColon, "Expect ';' after break.")?;
-                Ok(Stmt::Break(BreakStmt { line: token.line})) 
+                Ok(Stmt::Break(Rc::new(BreakStmt { line: token.line}))) 
             }
             Some(token) if token.ttype == TokenType::Print => {
                 self.advance();
@@ -294,7 +294,7 @@ impl Parser {
             },
             Some(token) if token.ttype == TokenType::LeftBrace => {
                 self.advance();
-                Ok(Stmt::Block(BlockStmt {statements: self.block()?}))
+                Ok(Stmt::Block(Rc::new(BlockStmt {statements: self.block()?})))
             },
             Some(token) if token.ttype == TokenType::If => {
                 self.advance();
@@ -319,10 +319,10 @@ impl Parser {
     fn return_statement(&mut self, keyword: Token) -> Result<Stmt, LoxError> {
         let value = match self.peek() {
             Some(token) if token.ttype != TokenType::SemiColon => self.expression()?,
-            _ => Expr::Literal(LiteralExpr { value: Some(Object::Nil) })
+            _ => Expr::Literal(Rc::new(LiteralExpr { value: Some(Object::Nil) }))
         };
         self.consume(TokenType::SemiColon, "Expect ';' after return value.")?;
-        Ok(Stmt::Return(ReturnStmt { keyword, value }))
+        Ok(Stmt::Return(Rc::new(ReturnStmt { keyword, value })))
     }
 
     fn for_statement(&mut self) -> Result<Stmt, LoxError> {
@@ -344,7 +344,7 @@ impl Parser {
             Some(token) if token.ttype != TokenType::SemiColon => {
                 self.expression()?
             },
-            _ => Expr::Literal(LiteralExpr { value: Some(Object::Bool(true)) }),
+            _ => Expr::Literal(Rc::new(LiteralExpr { value: Some(Object::Bool(true)) })),
         };
 
         self.consume(TokenType::SemiColon, "Expect ';' after loop condition.")?;
@@ -361,13 +361,13 @@ impl Parser {
         let mut body = self.statement()?;
 
         if let Some(increment) = increment {
-            body = Stmt::Block(BlockStmt { statements: vec![body, Stmt::Expression(ExpressionStmt { expression: increment }) ] });
+            body = Stmt::Block(Rc::new(BlockStmt { statements: vec![body, Stmt::Expression(Rc::new(ExpressionStmt { expression: increment })) ] }));
         }
 
-        body = Stmt::While(WhileStmt { condition, body: Box::new(body) });
+        body = Stmt::While(Rc::new(WhileStmt { condition, body: Box::new(body) }));
         
         if let Some(initializer) = initializer {
-            body = Stmt::Block(BlockStmt { statements: vec![initializer, body] });
+            body = Stmt::Block(Rc::new(BlockStmt { statements: vec![initializer, body] }));
         }
 
         Ok(body)
@@ -380,7 +380,7 @@ impl Parser {
     
         let body = Box::new(self.statement()?);
         
-        Ok(Stmt::While(WhileStmt {condition, body}))
+        Ok(Stmt::While(Rc::new(WhileStmt {condition, body})))
     }
 
     fn if_statement(&mut self) -> Result<Stmt, LoxError> {
@@ -397,7 +397,7 @@ impl Parser {
             _ => None 
         };
 
-        Ok(Stmt::If(IfStmt{ condition, then_branch, else_branch}))
+        Ok(Stmt::If(Rc::new(IfStmt{ condition, then_branch, else_branch})))
     }
 
     fn block(&mut self) -> Result<Vec<Stmt>, LoxError> {
@@ -417,13 +417,13 @@ impl Parser {
     fn print_statement(&mut self) -> Result<Stmt, LoxError> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after value.")?;
-        Ok(Stmt::Print(PrintStmt { expression }))
+        Ok(Stmt::Print(Rc::new(PrintStmt { expression })))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, LoxError> {
         let expression = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after expression.")?;
-        Ok(Stmt::Expression(ExpressionStmt { expression }))
+        Ok(Stmt::Expression(Rc::new(ExpressionStmt { expression })))
     }
 
     fn declaration(&mut self) -> Result<Stmt, LoxError> {
@@ -467,7 +467,7 @@ impl Parser {
         self.consume(TokenType::RightParen, "Expect ')' after parameters.")?;
         self.consume(TokenType::LeftBrace, &format!("Expect '{{' before {kind} body."))?;
         let body = self.block()?;
-        Ok(Stmt::Function(FunctionStmt { name, parameters: Rc::new(parameters), body: Rc::new(body) }))
+        Ok(Stmt::Function(Rc::new(FunctionStmt { name, parameters: Rc::new(parameters), body: Rc::new(body) })))
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, LoxError> {
@@ -481,7 +481,7 @@ impl Parser {
         };
 
         self.consume(TokenType::SemiColon, "Expect ';' after variable declaration.")?;
-        Ok(Stmt::Var(VarStmt { name, initializer }))
+        Ok(Stmt::Var(Rc::new(VarStmt { name, initializer })))
     }
 
     pub fn parse(&mut self) -> Result<Vec<Stmt>, LoxError> {

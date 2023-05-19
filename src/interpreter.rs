@@ -11,7 +11,7 @@ pub struct Interpreter {
 impl ExprVisitor for Interpreter {
     type Output = Object;
 
-    fn visit_call_expr(&mut self, expr: &CallExpr) -> Result<Self::Output, LoxError> {
+    fn visit_call_expr(&mut self, expr: Rc<CallExpr>) -> Result<Self::Output, LoxError> {
         let callee = self.evaluate(&expr.callee)?;
     
         let mut arguments = Vec::new();
@@ -28,17 +28,17 @@ impl ExprVisitor for Interpreter {
             } else {
                 function.call(self, &arguments).map_or_else(|e| {
                     if let LoxError::ObjectError(message) = &e {
-                        LoxError::report(expr.paren.line, "", &message);
+                        LoxError::report(expr.paren.line, "", message);
                     }
                     Err(e)
-                }, |obj| Ok(obj))
+                }, Ok)
             }
         } else {
             Err(LoxError::runtime_error(&expr.paren, "Can only call functions and classes."))
         }
     }
 
-    fn visit_logical_expr(&mut self, expr: &LogicalExpr) -> Result<Self::Output, LoxError> {
+    fn visit_logical_expr(&mut self, expr: Rc<LogicalExpr>) -> Result<Self::Output, LoxError> {
         let left = self.evaluate(&expr.left)?;
 
         match expr.operator.ttype {
@@ -48,13 +48,13 @@ impl ExprVisitor for Interpreter {
         }
     }
 
-    fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError> {
+    fn visit_assign_expr(&mut self, expr: Rc<AssignExpr>) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&expr.value)?;
         self.environment.borrow_mut().assign(expr.name.clone(), value.clone())?;
         Ok(value)
     }
 
-    fn visit_binary_expr(&mut self, expr: &BinaryExpr) -> Result<Self::Output, LoxError> {
+    fn visit_binary_expr(&mut self, expr: Rc<BinaryExpr>) -> Result<Self::Output, LoxError> {
         let left = self.evaluate(&expr.left)?;
         let right = self.evaluate(&expr.right)?;
 
@@ -79,16 +79,16 @@ impl ExprVisitor for Interpreter {
         result
     }   
 
-    fn visit_grouping_expr(&mut self, expr: &GroupingExpr) -> Result<Self::Output, LoxError> {
+    fn visit_grouping_expr(&mut self, expr: Rc<GroupingExpr>) -> Result<Self::Output, LoxError> {
         self.evaluate(&expr.expression)
     }
 
-    fn visit_literal_expr(&mut self, expr: &LiteralExpr) -> Result<Self::Output, LoxError> {
+    fn visit_literal_expr(&mut self, expr: Rc<LiteralExpr>) -> Result<Self::Output, LoxError> {
         expr.value.clone().ok_or_else(|| LoxError::object_error("There is no valid literal!"))
     }
     
 
-    fn visit_unary_expr(&mut self, expr: &UnaryExpr) -> Result<Self::Output, LoxError> {
+    fn visit_unary_expr(&mut self, expr: Rc<UnaryExpr>) -> Result<Self::Output, LoxError> {
         // a kind of awkward
         let right = self.evaluate(&expr.right)?;
 
@@ -99,7 +99,7 @@ impl ExprVisitor for Interpreter {
         }
     }
 
-    fn visit_variable_expr(&mut self, expr: &VariableExpr) -> Result<Self::Output, LoxError> {
+    fn visit_variable_expr(&mut self, expr: Rc<VariableExpr>) -> Result<Self::Output, LoxError> {
         self.environment.borrow().get(expr.name.clone())
     }
 }
@@ -107,22 +107,22 @@ impl ExprVisitor for Interpreter {
 impl StmtVisitor for Interpreter {
     type Output = ();
 
-    fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<Self::Output, LoxError> {
+    fn visit_return_stmt(&mut self, stmt: Rc<ReturnStmt>) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&stmt.value)?;
         Err(LoxError::Return(value, stmt.keyword.line))
     }
 
-    fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError> {
-        let function = LoxFunction::new(stmt.clone(), Rc::clone(&self.environment));
+    fn visit_function_stmt(&mut self, stmt: Rc<FunctionStmt>) -> Result<Self::Output, LoxError> {
+        let function = LoxFunction::new(Rc::clone(&stmt), Rc::clone(&self.environment));
         self.environment.borrow_mut().define(&stmt.name.lexeme, &Object::Func(Rc::new(function)));
         Ok(())
     }
 
-    fn visit_break_stmt(&mut self, stmt: &BreakStmt) -> Result<Self::Output, LoxError> {
+    fn visit_break_stmt(&mut self, stmt: Rc<BreakStmt>) -> Result<Self::Output, LoxError> {
         Err(LoxError::Break(stmt.line)) 
     }
 
-    fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> Result<Self::Output, LoxError> {
+    fn visit_while_stmt(&mut self, stmt: Rc<WhileStmt>) -> Result<Self::Output, LoxError> {
         while Self::is_truthy(&self.evaluate(&stmt.condition)?) {
             match self.execute(&stmt.body) {
                 Err(LoxError::Break(_)) => break,
@@ -133,7 +133,7 @@ impl StmtVisitor for Interpreter {
         Ok(())
     }
     
-    fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError> {
+    fn visit_if_stmt(&mut self, stmt: Rc<IfStmt>) -> Result<Self::Output, LoxError> {
         if !matches!(self.evaluate(&stmt.condition)?, Object::Nil | Object::Bool(false)) {
             self.execute(&stmt.then_branch)
         } else if let Some(else_branch) = &stmt.else_branch {
@@ -143,22 +143,22 @@ impl StmtVisitor for Interpreter {
         }
     }
 
-    fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError> {
+    fn visit_block_stmt(&mut self, stmt: Rc<BlockStmt>) -> Result<Self::Output, LoxError> {
         self.execute_block(&stmt.statements, Environment::from(Rc::clone(&self.environment)))
     }
 
-    fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError> {
+    fn visit_expression_stmt(&mut self, stmt: Rc<ExpressionStmt>) -> Result<Self::Output, LoxError> {
         self.evaluate(&stmt.expression)?;
         Ok(())
     }
 
-    fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<Self::Output, LoxError> {
+    fn visit_print_stmt(&mut self, stmt: Rc<PrintStmt>) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&stmt.expression)?;
         println!("{}", value);
         Ok(())
     }
 
-    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError> {
+    fn visit_var_stmt(&mut self, stmt: Rc<VarStmt>) -> Result<Self::Output, LoxError> {
         let value = if stmt.initializer.is_some() {
             self.evaluate(stmt.initializer.as_ref().unwrap())?
         } else {

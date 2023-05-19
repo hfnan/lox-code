@@ -1,28 +1,29 @@
 use crate::error::*;
 use crate::token::*;
+use std::rc::Rc;
 use crate::object::*;
 
 pub trait ExprVisitor {
     type Output;
-    fn visit_assign_expr(&mut self, expr: &AssignExpr) -> Result<Self::Output, LoxError>;
-    fn visit_binary_expr(&mut self, expr: &BinaryExpr) -> Result<Self::Output, LoxError>;
-    fn visit_call_expr(&mut self, expr: &CallExpr) -> Result<Self::Output, LoxError>;
-    fn visit_grouping_expr(&mut self, expr: &GroupingExpr) -> Result<Self::Output, LoxError>;
-    fn visit_literal_expr(&mut self, expr: &LiteralExpr) -> Result<Self::Output, LoxError>;
-    fn visit_logical_expr(&mut self, expr: &LogicalExpr) -> Result<Self::Output, LoxError>;
-    fn visit_unary_expr(&mut self, expr: &UnaryExpr) -> Result<Self::Output, LoxError>;
-    fn visit_variable_expr(&mut self, expr: &VariableExpr) -> Result<Self::Output, LoxError>;
+    fn visit_assign_expr(&mut self, expr: Rc<AssignExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_binary_expr(&mut self, expr: Rc<BinaryExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_call_expr(&mut self, expr: Rc<CallExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_grouping_expr(&mut self, expr: Rc<GroupingExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_literal_expr(&mut self, expr: Rc<LiteralExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_logical_expr(&mut self, expr: Rc<LogicalExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_unary_expr(&mut self, expr: Rc<UnaryExpr>) -> Result<Self::Output, LoxError>;
+    fn visit_variable_expr(&mut self, expr: Rc<VariableExpr>) -> Result<Self::Output, LoxError>;
 }
 
 pub enum Expr {
-    Assign(AssignExpr),
-    Binary(BinaryExpr),
-    Call(CallExpr),
-    Grouping(GroupingExpr),
-    Literal(LiteralExpr),
-    Logical(LogicalExpr),
-    Unary(UnaryExpr),
-    Variable(VariableExpr),
+    Assign(Rc<AssignExpr>),
+    Binary(Rc<BinaryExpr>),
+    Call(Rc<CallExpr>),
+    Grouping(Rc<GroupingExpr>),
+    Literal(Rc<LiteralExpr>),
+    Logical(Rc<LogicalExpr>),
+    Unary(Rc<UnaryExpr>),
+    Variable(Rc<VariableExpr>),
 }
 
 pub struct AssignExpr {
@@ -81,57 +82,57 @@ impl Expr {
 }
 
 impl AssignExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_assign_expr(self)
+    pub fn accept<U>(self: &Rc<AssignExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_assign_expr(Rc::clone(self))
     }
 
 }
 
 impl BinaryExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_binary_expr(self)
+    pub fn accept<U>(self: &Rc<BinaryExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_binary_expr(Rc::clone(self))
     }
 
 }
 
 impl CallExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_call_expr(self)
+    pub fn accept<U>(self: &Rc<CallExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_call_expr(Rc::clone(self))
     }
 
 }
 
 impl GroupingExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_grouping_expr(self)
+    pub fn accept<U>(self: &Rc<GroupingExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_grouping_expr(Rc::clone(self))
     }
 
 }
 
 impl LiteralExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_literal_expr(self)
+    pub fn accept<U>(self: &Rc<LiteralExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_literal_expr(Rc::clone(self))
     }
 
 }
 
 impl LogicalExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_logical_expr(self)
+    pub fn accept<U>(self: &Rc<LogicalExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_logical_expr(Rc::clone(self))
     }
 
 }
 
 impl UnaryExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_unary_expr(self)
+    pub fn accept<U>(self: &Rc<UnaryExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_unary_expr(Rc::clone(self))
     }
 
 }
 
 impl VariableExpr {
-    pub fn accept<U>(&self, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_variable_expr(self)
+    pub fn accept<U>(self: &Rc<VariableExpr>, visitor: &mut impl ExprVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_variable_expr(Rc::clone(self))
     }
 
 }

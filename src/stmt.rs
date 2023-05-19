@@ -1,31 +1,31 @@
 use crate::error::*;
 use crate::token::*;
-use crate::expr::*;
 use std::rc::Rc;
+use crate::expr::*;
 
 pub trait StmtVisitor {
     type Output;
-    fn visit_break_stmt(&mut self, stmt: &BreakStmt) -> Result<Self::Output, LoxError>;
-    fn visit_block_stmt(&mut self, stmt: &BlockStmt) -> Result<Self::Output, LoxError>;
-    fn visit_expression_stmt(&mut self, stmt: &ExpressionStmt) -> Result<Self::Output, LoxError>;
-    fn visit_function_stmt(&mut self, stmt: &FunctionStmt) -> Result<Self::Output, LoxError>;
-    fn visit_if_stmt(&mut self, stmt: &IfStmt) -> Result<Self::Output, LoxError>;
-    fn visit_print_stmt(&mut self, stmt: &PrintStmt) -> Result<Self::Output, LoxError>;
-    fn visit_return_stmt(&mut self, stmt: &ReturnStmt) -> Result<Self::Output, LoxError>;
-    fn visit_var_stmt(&mut self, stmt: &VarStmt) -> Result<Self::Output, LoxError>;
-    fn visit_while_stmt(&mut self, stmt: &WhileStmt) -> Result<Self::Output, LoxError>;
+    fn visit_break_stmt(&mut self, stmt: Rc<BreakStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_block_stmt(&mut self, stmt: Rc<BlockStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_expression_stmt(&mut self, stmt: Rc<ExpressionStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_function_stmt(&mut self, stmt: Rc<FunctionStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_if_stmt(&mut self, stmt: Rc<IfStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_print_stmt(&mut self, stmt: Rc<PrintStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_return_stmt(&mut self, stmt: Rc<ReturnStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_var_stmt(&mut self, stmt: Rc<VarStmt>) -> Result<Self::Output, LoxError>;
+    fn visit_while_stmt(&mut self, stmt: Rc<WhileStmt>) -> Result<Self::Output, LoxError>;
 }
 
 pub enum Stmt {
-    Break(BreakStmt),
-    Block(BlockStmt),
-    Expression(ExpressionStmt),
-    Function(FunctionStmt),
-    If(IfStmt),
-    Print(PrintStmt),
-    Return(ReturnStmt),
-    Var(VarStmt),
-    While(WhileStmt),
+    Break(Rc<BreakStmt>),
+    Block(Rc<BlockStmt>),
+    Expression(Rc<ExpressionStmt>),
+    Function(Rc<FunctionStmt>),
+    If(Rc<IfStmt>),
+    Print(Rc<PrintStmt>),
+    Return(Rc<ReturnStmt>),
+    Var(Rc<VarStmt>),
+    While(Rc<WhileStmt>),
 }
 
 pub struct BreakStmt {
@@ -88,64 +88,64 @@ impl Stmt {
 }
 
 impl BreakStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_break_stmt(self)
+    pub fn accept<U>(self: &Rc<BreakStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_break_stmt(Rc::clone(self))
     }
 
 }
 
 impl BlockStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_block_stmt(self)
+    pub fn accept<U>(self: &Rc<BlockStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_block_stmt(Rc::clone(self))
     }
 
 }
 
 impl ExpressionStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_expression_stmt(self)
+    pub fn accept<U>(self: &Rc<ExpressionStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_expression_stmt(Rc::clone(self))
     }
 
 }
 
 impl FunctionStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_function_stmt(self)
+    pub fn accept<U>(self: &Rc<FunctionStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_function_stmt(Rc::clone(self))
     }
 
 }
 
 impl IfStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_if_stmt(self)
+    pub fn accept<U>(self: &Rc<IfStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_if_stmt(Rc::clone(self))
     }
 
 }
 
 impl PrintStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_print_stmt(self)
+    pub fn accept<U>(self: &Rc<PrintStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_print_stmt(Rc::clone(self))
     }
 
 }
 
 impl ReturnStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_return_stmt(self)
+    pub fn accept<U>(self: &Rc<ReturnStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_return_stmt(Rc::clone(self))
     }
 
 }
 
 impl VarStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_var_stmt(self)
+    pub fn accept<U>(self: &Rc<VarStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_var_stmt(Rc::clone(self))
     }
 
 }
 
 impl WhileStmt {
-    pub fn accept<U>(&self, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
-        visitor.visit_while_stmt(self)
+    pub fn accept<U>(self: &Rc<WhileStmt>, visitor: &mut impl StmtVisitor<Output = U>) -> Result<U, LoxError> {
+        visitor.visit_while_stmt(Rc::clone(self))
     }
 
 }

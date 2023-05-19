@@ -5,7 +5,7 @@ use crate::{callable::*, stmt::*, object::*, error::*, interpreter::*, environme
 
 pub struct LoxFunction {
     closure: Rc<RefCell<Environment>>,
-    declaration: FunctionStmt
+    declaration: Rc<FunctionStmt>
 }
 
 impl LoxCallable for LoxFunction {
@@ -38,7 +38,7 @@ impl Display for LoxFunction {
 }
 
 impl LoxFunction {
-    pub fn new(declaration: FunctionStmt, closure: Rc<RefCell<Environment>>) -> Self {
+    pub fn new(declaration: Rc<FunctionStmt>, closure: Rc<RefCell<Environment>>) -> Self {
         Self { declaration, closure }
     }
 }

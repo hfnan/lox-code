@@ -1,4 +1,15 @@
-var a = 1;
-print a * "str";
-print clock();
-print clock;
+fun do(f) {
+    var a = 3;
+    var b = 5;
+    return f(a, b);
+}
+
+fun add(a, b) {
+    return a + b;
+}
+
+fun mul(a, b) {
+    return a * b;
+}
+
+print do(mul);
