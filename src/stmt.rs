@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::token::*;
 use std::rc::Rc;
+use std::hash::Hash;
 use crate::expr::*;
 
 pub trait StmtVisitor {
@@ -83,6 +84,41 @@ impl Stmt {
             Stmt::Return(returnstmt) => returnstmt.accept(visitor),
             Stmt::Var(varstmt) => varstmt.accept(visitor),
             Stmt::While(whilestmt) => whilestmt.accept(visitor),
+        }
+    }
+}
+
+impl PartialEq for Stmt {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Stmt::Break(a), Stmt::Break(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Block(a), Stmt::Block(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Expression(a), Stmt::Expression(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Function(a), Stmt::Function(b)) => Rc::ptr_eq(a, b),
+            (Stmt::If(a), Stmt::If(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Print(a), Stmt::Print(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Return(a), Stmt::Return(b)) => Rc::ptr_eq(a, b),
+            (Stmt::Var(a), Stmt::Var(b)) => Rc::ptr_eq(a, b),
+            (Stmt::While(a), Stmt::While(b)) => Rc::ptr_eq(a, b),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for Stmt {}
+
+impl Hash for Stmt {
+    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
+        match self {
+            Stmt::Break(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Block(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Expression(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Function(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::If(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Print(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Return(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::Var(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Stmt::While(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
         }
     }
 }

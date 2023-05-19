@@ -34,6 +34,7 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     writeln!(file, "use crate::error::*;")?;   
     writeln!(file, "use crate::token::*;")?;   
     writeln!(file, "use std::rc::Rc;")?;
+    writeln!(file, "use std::hash::Hash;")?;
     if let "Expr" = base_name {
         writeln!(file, "use crate::object::*;")?;
     }
@@ -55,8 +56,6 @@ fn define_ast(output_dir: &str, base_name: &str, types: &[String]) -> io::Result
     Ok(())
 }
 
-
-
 fn define_fn(file: &mut fs::File, base_name: &str, class_name: &str, assotype: &str) ->  io::Result<()> {
     writeln!(file, "    pub fn accept<U>(self: &Rc<{class_name}{base_name}>, visitor: &mut impl {base_name}Visitor<{assotype} = U>) -> Result<U, LoxError> {{")?;
     writeln!(file, "        visitor.visit_{}_{}(Rc::clone(self))", class_name.to_lowercase(), base_name.to_lowercase())?;
@@ -72,6 +71,34 @@ fn define_impl(file: &mut fs::File, base_name: &str, types: &[String], assotype:
     for ttype in types {
         let class_name = ttype.split('>').next().unwrap().trim();
         writeln!(file, "            {base_name}::{class_name}({}stmt) => {}stmt.accept(visitor),", class_name.to_lowercase(), class_name.to_lowercase())?;
+    }
+    writeln!(file, "        }}")?;
+    writeln!(file, "    }}")?;
+    writeln!(file, "}}")?;
+    writeln!(file)?;
+
+    writeln!(file, "impl PartialEq for {base_name} {{")?;
+    writeln!(file, "    fn eq(&self, other: &Self) -> bool {{")?;
+    writeln!(file, "        match (self, other) {{")?;
+    for ttype in types {
+        let class_name = ttype.split('>').next().unwrap().trim();
+        writeln!(file, "            ({base_name}::{class_name}(a), {base_name}::{class_name}(b)) => Rc::ptr_eq(a, b),")?;
+    }
+    writeln!(file, "            _ => false,")?;
+    writeln!(file, "        }}")?;
+    writeln!(file, "    }}")?;
+    writeln!(file, "}}")?;
+    writeln!(file)?;
+
+    writeln!(file, "impl Eq for {base_name} {{}}")?;
+    writeln!(file)?;
+
+    writeln!(file, "impl Hash for {base_name} {{")?; 
+    writeln!(file, "    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {{")?;
+    writeln!(file, "        match self {{")?;
+    for ttype in types {
+        let class_name = ttype.split('>').next().unwrap().trim();
+        writeln!(file, "            {base_name}::{class_name}(a) => hasher.write_usize(Rc::as_ptr(a) as usize),")?;
     }
     writeln!(file, "        }}")?;
     writeln!(file, "    }}")?;

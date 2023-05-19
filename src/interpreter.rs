@@ -1,11 +1,13 @@
 use crate::loxfunction::LoxFunction;
 use crate::{object::Object, expr::*, error::LoxError, token::*, stmt::*, callable::*, environment::Environment};
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
 pub struct Interpreter {
     pub globals: Rc<RefCell<Environment>>,
     environment: Rc<RefCell<Environment>>,
+    locals: HashMap<Expr, usize>,
 }
 
 impl ExprVisitor for Interpreter {
@@ -50,7 +52,11 @@ impl ExprVisitor for Interpreter {
 
     fn visit_assign_expr(&mut self, expr: Rc<AssignExpr>) -> Result<Self::Output, LoxError> {
         let value = self.evaluate(&expr.value)?;
-        self.environment.borrow_mut().assign(expr.name.clone(), value.clone())?;
+        if let Some(distance) = self.locals.get(&Expr::Assign(Rc::clone(&expr))) {
+            self.environment.borrow_mut().assign_at(*distance, &expr.name, value.clone())?;
+        } else {
+            self.globals.borrow_mut().assign(&expr.name, value.clone())?;
+        }
         Ok(value)
     }
 
@@ -100,7 +106,7 @@ impl ExprVisitor for Interpreter {
     }
 
     fn visit_variable_expr(&mut self, expr: Rc<VariableExpr>) -> Result<Self::Output, LoxError> {
-        self.environment.borrow().get(expr.name.clone())
+        self.look_up_variable(&expr.name, Expr::Variable(Rc::clone(&expr)))
     }
 }
 
@@ -177,7 +183,8 @@ impl Interpreter {
 
         Self {
             globals: Rc::clone(&globals), 
-            environment: Rc::clone(&globals)
+            environment: Rc::clone(&globals),
+            locals: HashMap::new()
         }
     }
 
@@ -201,6 +208,19 @@ impl Interpreter {
 
         self.environment = previous;        
         res
+    }
+
+    pub fn resolve(&mut self, expr: Expr, depth: usize) -> Result<(), LoxError> {
+        self.locals.insert(expr, depth);
+        Ok(())
+    }
+
+    fn look_up_variable(&mut self, name: &Token, expr: Expr) -> Result<Object, LoxError> {
+        if let Some(distance) = self.locals.get(&expr) {
+            self.environment.borrow().get_at(*distance, &name.lexeme)
+        } else {
+            self.globals.borrow().get(name)
+        }
     }
 
     pub fn interpret(&mut self, stmts: Vec<Stmt>) {

@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::token::*;
 use std::rc::Rc;
+use std::hash::Hash;
 use crate::object::*;
 
 pub trait ExprVisitor {
@@ -77,6 +78,39 @@ impl Expr {
             Expr::Logical(logicalstmt) => logicalstmt.accept(visitor),
             Expr::Unary(unarystmt) => unarystmt.accept(visitor),
             Expr::Variable(variablestmt) => variablestmt.accept(visitor),
+        }
+    }
+}
+
+impl PartialEq for Expr {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Expr::Assign(a), Expr::Assign(b)) => Rc::ptr_eq(a, b),
+            (Expr::Binary(a), Expr::Binary(b)) => Rc::ptr_eq(a, b),
+            (Expr::Call(a), Expr::Call(b)) => Rc::ptr_eq(a, b),
+            (Expr::Grouping(a), Expr::Grouping(b)) => Rc::ptr_eq(a, b),
+            (Expr::Literal(a), Expr::Literal(b)) => Rc::ptr_eq(a, b),
+            (Expr::Logical(a), Expr::Logical(b)) => Rc::ptr_eq(a, b),
+            (Expr::Unary(a), Expr::Unary(b)) => Rc::ptr_eq(a, b),
+            (Expr::Variable(a), Expr::Variable(b)) => Rc::ptr_eq(a, b),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for Expr {}
+
+impl Hash for Expr {
+    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
+        match self {
+            Expr::Assign(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Binary(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Call(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Grouping(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Literal(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Logical(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Unary(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
+            Expr::Variable(a) => hasher.write_usize(Rc::as_ptr(a) as usize),
         }
     }
 }

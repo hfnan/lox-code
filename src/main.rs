@@ -9,10 +9,11 @@ mod stmt;
 mod environment;
 mod callable;
 mod loxfunction;
-// mod resolver;
+mod resolver;
 
 use interpreter::Interpreter;
 use parser::Parser;
+use resolver::Resolver;
 use scanner::Scanner;
 use error::LoxError;
 
@@ -72,6 +73,12 @@ fn run(source: String, interp: &mut Interpreter) -> Result<(), LoxError> {
     };
     
     if !parser.success() {
+        return Ok(());
+    }
+
+    let mut resolver = Resolver::new(interp);
+    resolver.resolve(&statements)?;
+    if !resolver.success() {
         return Ok(());
     }
     
